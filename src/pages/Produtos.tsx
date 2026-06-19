@@ -43,7 +43,7 @@ export function Produtos() {
     const { data, error } = await supabase
       .from('produtos')
       .select('*')
-      .order('criado_em', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (!error && data) {
       setProdutos(data);

@@ -59,7 +59,7 @@ export function Faturamento() {
     const { data: notasData } = await supabase
       .from('notas_fiscais')
       .select('*, cliente:clientes(*)')
-      .order('criado_em', { ascending: false });
+      .order('created_at', { ascending: false });
 
     const { data: clientesData } = await supabase.from('clientes').select('*');
     const { data: orcamentosData } = await supabase.from('orcamentos').select('*');

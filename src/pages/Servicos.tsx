@@ -42,7 +42,7 @@ export function Servicos() {
     const { data, error } = await supabase
       .from('servicos')
       .select('*')
-      .order('criado_em', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (!error && data) {
       setServicos(data);

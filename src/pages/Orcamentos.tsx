@@ -70,7 +70,7 @@ export function Orcamentos() {
 
     const [{ data: orcamentosData }, { data: clientesData }, { data: produtosData }, { data: servicosData }] =
       await Promise.all([
-        supabase.from('orcamentos').select('*, cliente:clientes(*)').order('criado_em', { ascending: false }),
+        supabase.from('orcamentos').select('*, cliente:clientes(*)').order('created_at', { ascending: false }),
         supabase.from('clientes').select('*').order('nome_razao_social'),
         supabase.from('produtos').select('*').order('nome'),
         supabase.from('servicos').select('*').order('nome'),
@@ -113,7 +113,7 @@ export function Orcamentos() {
           quantidade: novoItem.quantidade,
           valor_unitario: produto.preco_venda,
           valor_total: produto.preco_venda * novoItem.quantidade,
-          criado_em: new Date().toISOString(),
+          created_at: new Date().toISOString(),
         };
       }
     } else {
@@ -128,7 +128,7 @@ export function Orcamentos() {
           quantidade: novoItem.quantidade,
           valor_unitario: servico.preco,
           valor_total: servico.preco * novoItem.quantidade,
-          criado_em: new Date().toISOString(),
+          created_at: new Date().toISOString(),
         };
       }
     }
