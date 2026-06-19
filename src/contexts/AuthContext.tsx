@@ -1,102 +1,82 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import { Usuario } from '../types';
+import type { Usuario } from '../types';
 
 interface AuthContextType {
   usuario: Usuario | null;
   isAuthenticated: boolean;
   login: (email: string, senha: string) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  signup: (email: string, senha: string, nome: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  trocarSenha: (novaSenha: string) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function userToUsuario(user: any | null): Usuario | null {
+  if (!user) return null;
+  return {
+    id: user.id,
+    email: user.email ?? '',
+    nome: (user.user_metadata?.nome as string) || user.email || 'Usuário',
+  };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar se há usuário salvo no localStorage
-    const savedUser = localStorage.getItem('erp_usuario');
-    if (savedUser) {
-      try {
-        setUsuario(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem('erp_usuario');
-      }
-    }
-    setLoading(false);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUsuario(userToUsuario(session?.user));
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      setUsuario(userToUsuario(data.session?.user));
+      setLoading(false);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  const login = async (email: string, senha: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setLoading(true);
-
-      // Verificar na tabela usuarios
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', email)
-        .eq('senha', senha)
-        .maybeSingle();
-
-      if (data) {
-        setUsuario(data);
-        localStorage.setItem('erp_usuario', JSON.stringify(data));
-        setLoading(false);
-        return { success: true };
-      }
-
-      // Se não encontrou mas é o usuárioadmin, criar
-      if (email === 'admin@erp.com' && senha === 'admin123') {
-        const { data: novoUsuario, error: insertError } = await supabase
-          .from('usuarios')
-          .insert([{
-            email: email,
-            senha: senha,
-            nome: 'Administrador'
-          }])
-          .select()
-          .single();
-
-        if (insertError) {
-          setLoading(false);
-          return { success: false, error: 'Erro ao criar usuário de demonstração' };
-        }
-
-        if (novoUsuario) {
-          setUsuario(novoUsuario);
-          localStorage.setItem('erp_usuario', JSON.stringify(novoUsuario));
-          setLoading(false);
-          return { success: true };
-        }
-      }
-
-      setLoading(false);
-      return { success: false, error: 'E-mail ou senha inválidos. Use admin@erp.com / admin123' };
-    } catch (err) {
-      setLoading(false);
-      return { success: false, error: 'Erro ao realizar login' };
-    }
+  const login = async (email: string, senha: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+    if (error) return { success: false, error: traduzirErro(error.message) };
+    return { success: true };
   };
 
-  const logout = () => {
-    setUsuario(null);
-    localStorage.removeItem('erp_usuario');
+  const signup = async (email: string, senha: string, nome: string) => {
+    const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: senha,
+      options: { emailRedirectTo: redirectTo, data: { nome } },
+    });
+    if (error) return { success: false, error: traduzirErro(error.message) };
+    return { success: true };
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const trocarSenha = async (novaSenha: string) => {
+    const { error } = await supabase.auth.updateUser({ password: novaSenha });
+    if (error) return { success: false, error: traduzirErro(error.message) };
+    return { success: true };
   };
 
   return (
-    <AuthContext.Provider value={{
-      usuario,
-      isAuthenticated: !!usuario,
-      login,
-      logout,
-      loading
-    }}>
+    <AuthContext.Provider value={{ usuario, isAuthenticated: !!usuario, login, signup, logout, trocarSenha, loading }}>
       {children}
     </AuthContext.Provider>
   );
+}
+
+function traduzirErro(msg: string): string {
+  if (/invalid login/i.test(msg)) return 'E-mail ou senha inválidos';
+  if (/already registered/i.test(msg)) return 'Este e-mail já está cadastrado';
+  if (/password.*6/i.test(msg)) return 'A senha deve ter pelo menos 6 caracteres';
+  return msg;
 }
 
 export function useAuth() {
