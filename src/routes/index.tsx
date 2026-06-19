@@ -1,29 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ClientOnly } from "@tanstack/react-router";
+import { ErpApp } from "@/erp-app";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "ERP - Sistema de Gestão" },
+      { name: "description", content: "ERP com clientes, fornecedores, produtos, orçamentos e faturamento" },
+      { property: "og:title", content: "ERP - Sistema de Gestão" },
+      { property: "og:description", content: "ERP com clientes, fornecedores, produtos, orçamentos e faturamento" },
     ],
   }),
-  component: Index,
+  component: () => (
+    <ClientOnly fallback={<div className="min-h-screen bg-slate-900" />}>
+      <ErpApp />
+    </ClientOnly>
+  ),
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
