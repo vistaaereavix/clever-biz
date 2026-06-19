@@ -400,13 +400,16 @@ export function Clientes() {
                 CPF/CNPJ
               </label>
               <div className="flex gap-2">
-                <input
-                  type="text"
+                <IMaskInput
+                  mask={[
+                    { mask: '000.000.000-00', maxLength: 11 },
+                    { mask: '00.000.000/0000-00' },
+                  ]}
                   value={formData.documento}
-                  onChange={(e) => setFormData({ ...formData, documento: e.target.value })}
+                  onAccept={(value) => setFormData({ ...formData, documento: String(value) })}
+                  onComplete={(value) => handleDocumentoCompleto(String(value))}
                   className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Digite o documento"
-                  maxLength={18}
+                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
                 />
                 <button
                   type="button"
@@ -418,7 +421,11 @@ export function Clientes() {
                 </button>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Digite um CNPJ e clique em Buscar para preencher automaticamente
+                {buscandoDoc
+                  ? 'Procurando cliente existente…'
+                  : infoAutoFill
+                  ? infoAutoFill
+                  : 'Digite o CPF/CNPJ. Se já estiver cadastrado, os dados serão carregados; CNPJ pode ser preenchido com "Buscar".'}
               </p>
             </div>
 
