@@ -72,11 +72,11 @@ export type OrcamentoStatus = "pendente" | "aprovado" | "convertido" | "cancelad
 export interface Orcamento {
   id: string;
   user_id?: string;
-  cliente_id: string;
+  cliente_id: string | null;
   numero: number;
   data_emissao: string;
   validade_dias: number;
-  status: OrcamentoStatus;
+  status: OrcamentoStatus | string;
   observacoes?: string | null;
   total: number;
   created_at?: string;
