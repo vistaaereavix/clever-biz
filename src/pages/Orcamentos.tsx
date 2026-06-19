@@ -39,14 +39,14 @@ export function Orcamentos() {
 
   const [formData, setFormData] = useState({
     cliente_id: '',
-    validade_dias: '',
+    validade_dias: 30 as number,
     observacoes: '',
-    status: 'pendente' as const,
+    status: 'pendente' as 'pendente' | 'aprovado' | 'convertido' | 'cancelado',
   });
 
   const [itens, setItens] = useState<OrcamentoItem[]>([]);
   const [novoItem, setNovoItem] = useState({
-    tipo: 'produto' as const,
+    tipo: 'produto' as 'produto' | 'servico',
     item_id: '',
     quantidade: 1,
   });
@@ -244,10 +244,10 @@ export function Orcamentos() {
       .eq('orcamento_id', orcamento.id);
 
     setFormData({
-      cliente_id: orcamento.cliente_id,
+      cliente_id: orcamento.cliente_id || '',
       validade_dias: orcamento.validade_dias,
       observacoes: orcamento.observacoes || '',
-      status: orcamento.status as 'pendente' | 'aprovado' | 'convertido' | 'cancelado',
+      status: (orcamento.status as 'pendente' | 'aprovado' | 'convertido' | 'cancelado') || 'pendente',
     });
 
     setItens(itensData || []);
