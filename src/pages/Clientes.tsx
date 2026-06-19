@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { IMaskInput } from 'react-imask';
 import { supabase } from '../lib/supabase';
 import { Cliente } from '../types';
 import { Modal, ConfirmModal } from '../components/Modals';
@@ -38,7 +39,9 @@ export function Clientes() {
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [buscandoCNPJ, setBuscandoCNPJ] = useState(false);
   const [buscandoCEP, setBuscandoCEP] = useState(false);
+  const [buscandoDoc, setBuscandoDoc] = useState(false);
   const [erro, setErro] = useState('');
+  const [infoAutoFill, setInfoAutoFill] = useState('');
 
   const [formData, setFormData] = useState({
     documento: '',
@@ -80,6 +83,7 @@ export function Clientes() {
   );
 
   const handleBuscaCNPJ = async () => {
+    setInfoAutoFill('');
     const doc = limparDocumento(formData.documento);
     if (doc.length !== 14) {
       setErro('Digite um CNPJ válido com 14 dígitos');
@@ -111,6 +115,46 @@ export function Clientes() {
     }
 
     setBuscandoCNPJ(false);
+  };
+
+  // Auto-fill: ao digitar o documento completo (CPF=11 ou CNPJ=14), procura no banco
+  // e, se já existir cliente cadastrado, carrega os dados para edição.
+  const handleDocumentoCompleto = async (raw: string) => {
+    const doc = limparDocumento(raw);
+    if (doc.length !== 11 && doc.length !== 14) return;
+    setBuscandoDoc(true);
+    setInfoAutoFill('');
+    try {
+      const { data } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('user_id', usuario?.id)
+        .eq('documento', doc)
+        .maybeSingle();
+      if (data) {
+        setClienteSelecionado(data);
+        setFormData({
+          documento: data.documento,
+          nome_razao_social: data.nome_razao_social || '',
+          inscricao_estadual: data.inscricao_estadual || '',
+          email: data.email || '',
+          telefone: data.telefone || '',
+          cep: data.cep || '',
+          logradouro: data.logradouro || '',
+          numero: data.numero || '',
+          complemento: data.complemento || '',
+          bairro: data.bairro || '',
+          cidade: data.cidade || '',
+          estado: data.estado || '',
+          tipo_documento: data.tipo_documento || (doc.length === 11 ? 'CPF' : 'CNPJ'),
+        });
+        setInfoAutoFill('Cliente encontrado — dados carregados para edição.');
+      } else {
+        setFormData((f) => ({ ...f, tipo_documento: doc.length === 11 ? 'CPF' : 'CNPJ' }));
+      }
+    } finally {
+      setBuscandoDoc(false);
+    }
   };
 
   const handleBuscaCEP = async () => {
