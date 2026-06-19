@@ -154,7 +154,7 @@ export function Fornecedores() {
       ...formData,
       documento: docLimpo,
       tipo_documento: 'CNPJ',
-      user_id: usuario?.id,
+      user_id: usuario?.id || '',
     };
 
     if (fornecedorSelecionado) {
