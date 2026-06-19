@@ -288,77 +288,125 @@ export function Orcamentos() {
 
     const cliente = clientes.find((c) => c.id === orcamento.cliente_id);
 
+    // Dados da empresa
+    const { data: empresa } = await supabase
+      .from('company_settings')
+      .select('*')
+      .eq('user_id', usuario?.id)
+      .maybeSingle();
+
     const doc = new jsPDF();
 
+    // Cabeçalho com altura suficiente para a logo quadrada
+    const HEADER_H = 50;
     doc.setFillColor(30, 58, 138);
-    doc.rect(0, 0, 210, 40, 'F');
+    doc.rect(0, 0, 210, HEADER_H, 'F');
 
+    // Logo quadrada 35x35mm bem distribuída à esquerda
     if (logoUrl) {
       try {
-        doc.addImage(logoUrl, 'PNG', 10, 10, 40, 15);
-      } catch (e) {
-        doc.setFontSize(20);
-        doc.setTextColor(255, 255, 255);
-        doc.text('ERP - Orçamento', 10, 25);
+        doc.addImage(logoUrl, 'PNG', 10, 7.5, 35, 35);
+      } catch {
+        try { doc.addImage(logoUrl, 'JPEG', 10, 7.5, 35, 35); } catch {}
       }
-    } else {
-      doc.setFontSize(20);
-      doc.setTextColor(255, 255, 255);
-      doc.text('ERP - Orçamento', 10, 25);
     }
 
-    doc.setFontSize(18);
+    // Dados da empresa à direita da logo, em branco
     doc.setTextColor(255, 255, 255);
-    doc.text(`Orçamento Nº ${orcamento.numero}`, 150, 25);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    const nomeEmpresa = (empresa?.nome_fantasia || empresa?.razao_social || 'Sua Empresa').toString();
+    doc.text(nomeEmpresa, 50, 14);
 
-    doc.setFontSize(10);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Data: ${formatarData(orcamento.data_emissao)}`, 150, 33);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    let yE = 20;
+    if (empresa?.razao_social && empresa?.nome_fantasia) { doc.text(empresa.razao_social, 50, yE); yE += 4.5; }
+    if (empresa?.cnpj) { doc.text(`CNPJ: ${empresa.cnpj}`, 50, yE); yE += 4.5; }
+    if (empresa?.inscricao_estadual) { doc.text(`IE: ${empresa.inscricao_estadual}`, 50, yE); yE += 4.5; }
+    const enderecoLinha = [empresa?.logradouro, empresa?.numero].filter(Boolean).join(', ');
+    if (enderecoLinha) { doc.text(enderecoLinha + (empresa?.bairro ? ` - ${empresa.bairro}` : ''), 50, yE); yE += 4.5; }
+    const cidadeLinha = [empresa?.cidade, empresa?.estado].filter(Boolean).join(' - ');
+    if (cidadeLinha || empresa?.cep) { doc.text([cidadeLinha, empresa?.cep].filter(Boolean).join('  CEP: '), 50, yE); yE += 4.5; }
+    if (empresa?.telefone || empresa?.email) {
+      doc.text([empresa?.telefone, empresa?.email].filter(Boolean).join('  •  '), 50, yE);
+    }
 
+    // Bloco do número do orçamento (canto inferior direito do cabeçalho)
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(150, HEADER_H - 18, 50, 13, 2, 2, 'F');
+    doc.setTextColor(30, 58, 138);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`ORÇAMENTO Nº ${orcamento.numero}`, 175, HEADER_H - 11, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Emissão: ${formatarData(orcamento.data_emissao)}`, 175, HEADER_H - 6.5, { align: 'center' });
+
+    // Bloco CLIENTE
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-    doc.text('CLIENTE', 10, 55);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('CLIENTE', 10, HEADER_H + 12);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(10, HEADER_H + 14, 200, HEADER_H + 14);
 
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     if (cliente) {
-      doc.text(cliente.nome_razao_social, 10, 63);
-      doc.text(formatarDocumento(cliente.documento, cliente.tipo_documento as 'CPF' | 'CNPJ'), 10, 70);
+      doc.text(cliente.nome_razao_social || '', 10, HEADER_H + 21);
+      doc.text(formatarDocumento(cliente.documento, cliente.tipo_documento as 'CPF' | 'CNPJ'), 10, HEADER_H + 27);
       if (cliente.logradouro) {
-        doc.text(`${cliente.logradouro}, ${cliente.numero} - ${cliente.bairro}`, 10, 77);
-        doc.text(`${cliente.cidade} - ${cliente.estado}`, 10, 84);
+        doc.text(`${cliente.logradouro}, ${cliente.numero || 's/n'}${cliente.bairro ? ' - ' + cliente.bairro : ''}`, 10, HEADER_H + 33);
+        doc.text(`${cliente.cidade || ''} - ${cliente.estado || ''}`, 10, HEADER_H + 39);
+      }
+      if (cliente.telefone || cliente.email) {
+        doc.text([cliente.telefone, cliente.email].filter(Boolean).join('  •  '), 110, HEADER_H + 21);
       }
     }
 
-    const tableData = (itensData || []).map((item, index) => [
+    const tableData = (itensData || []).map((item: any, index: number) => [
       (index + 1).toString(),
       item.descricao,
-      item.quantidade.toString(),
+      String(item.quantidade),
       formatarMoeda(item.valor_unitario),
       formatarMoeda(item.valor_total),
     ]);
 
     autoTable(doc, {
-      startY: 95,
+      startY: HEADER_H + 50,
       head: [['Item', 'Descrição', 'Qtd', 'Valor Unit.', 'Total']],
       body: tableData,
       theme: 'striped',
       headStyles: { fillColor: [30, 58, 138] },
+      columnStyles: {
+        0: { cellWidth: 14, halign: 'center' },
+        2: { cellWidth: 18, halign: 'center' },
+        3: { cellWidth: 32, halign: 'right' },
+        4: { cellWidth: 32, halign: 'right' },
+      },
     });
 
     const finalY = (doc as any).lastAutoTable?.finalY || 150;
 
-    doc.setFontSize(12);
-    doc.text(`Total: ${formatarMoeda(orcamento.total)}`, 140, finalY + 20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text(`TOTAL: ${formatarMoeda(orcamento.total)}`, 200, finalY + 10, { align: 'right' });
 
     if (orcamento.observacoes) {
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(9);
-      doc.text('Observações:', 10, finalY + 35);
-      doc.text(orcamento.observacoes, 10, finalY + 42, { maxWidth: 180 });
+      doc.text('Observações:', 10, finalY + 22);
+      doc.setFont('helvetica', 'normal');
+      doc.text(orcamento.observacoes, 10, finalY + 28, { maxWidth: 190 });
     }
 
+    doc.setDrawColor(200, 200, 200);
+    doc.line(10, 280, 200, 280);
     doc.setFontSize(8);
-    doc.text(`Validade: ${orcamento.validade_dias} dias`, 10, 280);
-    doc.text('Este orçamento é válido conforme prazo acima.', 10, 286);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Validade: ${orcamento.validade_dias} dias a partir da emissão`, 10, 286);
+    doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
     doc.save(`orcamento_${orcamento.numero}.pdf`);
   };
