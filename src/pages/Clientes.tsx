@@ -157,11 +157,15 @@ export function Clientes() {
       return;
     }
 
+    if (!usuario?.id) {
+      setErro('Sessão expirada. Faça login novamente.');
+      return;
+    }
     const dadosParaSalvar = {
       ...formData,
       documento: docLimpo,
       tipo_documento: tipoDoc,
-      user_id: usuario?.id,
+      user_id: usuario.id,
     };
 
     if (clienteSelecionado) {
