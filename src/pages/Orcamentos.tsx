@@ -266,7 +266,7 @@ export function Orcamentos() {
   const limparForm = () => {
     setFormData({
       cliente_id: '',
-      validade_dias: '',
+      validade_dias: 30,
       observacoes: '',
       status: 'pendente',
     });
@@ -574,7 +574,7 @@ export function Orcamentos() {
                 type="number"
                 min="1"
                 value={formData.validade_dias}
-                onChange={(e) => setFormData({ ...formData, validade_dias: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, validade_dias: Number(e.target.value) || 0 })}
                 className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
