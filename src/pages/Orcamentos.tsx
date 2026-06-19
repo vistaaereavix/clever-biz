@@ -57,12 +57,18 @@ export function Orcamentos() {
   }, []);
 
   const carregarLogo = async () => {
+    if (!usuario) return;
     const { data } = await supabase
-      .from('configuracoes')
-      .select('valor')
-      .eq('chave', 'logo_url')
-      .single();
-    if (data) setLogoUrl(data.valor);
+      .from('company_settings')
+      .select('logo_url')
+      .eq('user_id', usuario.id)
+      .maybeSingle();
+    if (data?.logo_url) {
+      const { data: signed } = await supabase.storage
+        .from('company-logos')
+        .createSignedUrl(data.logo_url, 60 * 60);
+      if (signed?.signedUrl) setLogoUrl(signed.signedUrl);
+    }
   };
 
   const carregarDados = async () => {
