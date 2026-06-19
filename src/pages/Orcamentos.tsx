@@ -185,13 +185,15 @@ export function Orcamentos() {
         await supabase.from('orcamento_itens').delete().eq('orcamento_id', orcamentoSelecionado.id);
         orcamentoId = orcamentoSelecionado.id;
       } else {
-        const { data: configData } = await supabase
-          .from('configuracoes')
-          .select('valor')
-          .eq('chave', 'proximo_orcamento')
-          .single();
-
-        const numero = parseInt(configData?.valor || '1');
+        // Próximo número: max(numero)+1 do usuário atual
+        const { data: maxRow } = await supabase
+          .from('orcamentos')
+          .select('numero')
+          .eq('user_id', usuario?.id)
+          .order('numero', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const numero = ((maxRow?.numero as number) || 0) + 1;
 
         const { data: newOrcamento, error: insertError } = await supabase
           .from('orcamentos')
@@ -213,10 +215,7 @@ export function Orcamentos() {
 
         orcamentoId = newOrcamento.id;
 
-        await supabase
-          .from('configuracoes')
-          .update({ valor: (numero + 1).toString() })
-          .eq('chave', 'proximo_orcamento');
+        // contador agora vem do max(numero); nada a atualizar aqui
       }
 
       const itensParaInserir = itens.map((item) => ({
