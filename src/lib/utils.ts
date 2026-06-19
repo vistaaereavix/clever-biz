@@ -1,3 +1,6 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
 export function formatarCPF(valor: string): string {
   const numeros = valor.replace(/\D/g, '');
   return numeros.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
@@ -193,8 +196,6 @@ export function gerarCodigoServico(): string {
   return `SRV${random}`;
 }
 
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
