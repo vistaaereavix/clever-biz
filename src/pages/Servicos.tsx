@@ -53,7 +53,7 @@ export function Servicos() {
   const servicosFiltrados = servicos.filter(
     (s) =>
       s.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      s.codigo_municipal.toLowerCase().includes(busca.toLowerCase())
+      (s.codigo_municipal ?? '').toLowerCase().includes(busca.toLowerCase())
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,7 +99,7 @@ export function Servicos() {
     setServicoSelecionado(servico);
     setFormData({
       nome: servico.nome,
-      codigo_municipal: servico.codigo_municipal,
+      codigo_municipal: servico.codigo_municipal ?? '',
       preco: servico.preco,
       descricao: servico.descricao || '',
     });
