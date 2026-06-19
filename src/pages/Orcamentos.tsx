@@ -377,15 +377,14 @@ export function Orcamentos() {
   };
 
   const converterParaNotaFiscal = async (orcamento: Orcamento) => {
-    const cliente = clientes.find((c) => c.id === orcamento.cliente_id);
-
-    const { data: configData } = await supabase
-      .from('configuracoes')
-      .select('valor')
-      .eq('chave', 'proxima_nf')
-      .single();
-
-    const numeroNF = parseInt(configData?.valor || '1');
+    const { data: maxRow } = await supabase
+      .from('notas_fiscais')
+      .select('numero')
+      .eq('user_id', usuario?.id)
+      .order('numero', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const numeroNF = ((maxRow?.numero as number) || 0) + 1;
 
     await supabase.from('notas_fiscais').insert([
       {
@@ -399,11 +398,6 @@ export function Orcamentos() {
     ]);
 
     await supabase.from('orcamentos').update({ status: 'convertido' }).eq('id', orcamento.id);
-
-    await supabase
-      .from('configuracoes')
-      .update({ valor: (numeroNF + 1).toString() })
-      .eq('chave', 'proxima_nf');
 
     carregarDados();
   };
