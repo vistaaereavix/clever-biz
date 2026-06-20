@@ -14,6 +14,7 @@ import {
   FileDown,
   ArrowRight,
   Eye,
+  FileSearch,
   Calendar,
   User,
   DollarSign,
