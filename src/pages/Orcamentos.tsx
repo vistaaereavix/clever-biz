@@ -281,7 +281,7 @@ export function Orcamentos() {
     setErro('');
   };
 
-  const gerarPDF = async (orcamento: Orcamento) => {
+  const gerarPDF = async (orcamento: Orcamento, modo: 'download' | 'preview' = 'download') => {
     const { data: itensData } = await supabase
       .from('orcamento_itens')
       .select('*')
@@ -410,7 +410,12 @@ export function Orcamentos() {
     doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
     aplicarMarcaDagua(doc, nomeEmpresa);
-    doc.save(`orcamento_${orcamento.numero}.pdf`);
+    if (modo === 'preview') {
+      const blobUrl = doc.output('bloburl');
+      window.open(blobUrl, '_blank');
+    } else {
+      doc.save(`orcamento_${orcamento.numero}.pdf`);
+    }
   };
 
   const handleVisualizar = async (orcamento: Orcamento) => {
