@@ -564,6 +564,13 @@ export function Orcamentos() {
                       >
                         <FileDown size={18} />
                       </button>
+                      <button
+                        onClick={() => gerarPDF(orcamento, 'preview')}
+                        className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-lg transition-colors"
+                        title="Visualizar PDF"
+                      >
+                        <FileSearch size={18} />
+                      </button>
                       {orcamento.status === 'pendente' && (
                         <button
                           onClick={() => converterParaNotaFiscal(orcamento)}
