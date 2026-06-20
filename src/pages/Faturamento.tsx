@@ -15,6 +15,7 @@ import {
   Clock,
   Key,
   Eye,
+  FileSearch,
 } from 'lucide-react';
 import { formatarMoeda, formatarData, formatarDocumento, formatarDataHora } from '../lib/utils';
 import jsPDF from 'jspdf';
@@ -169,7 +170,7 @@ export function Faturamento() {
     setFormData({ ...formData, processando: false });
   };
 
-  const baixarDANFE = async (nota: NotaFiscal) => {
+  const baixarDANFE = async (nota: NotaFiscal, modo: 'download' | 'preview' = 'download') => {
     const cliente = clientes.find((c) => c.id === nota.cliente_id);
     const orcamento = orcamentos.find((o) => o.id === nota.orcamento_id);
 
@@ -259,7 +260,12 @@ export function Faturamento() {
     doc.text('Document o auxiliar da Nota Fiscal Eletrônica. Este documento não possui validade fiscal.', 10, 285);
 
     aplicarMarcaDagua(doc, 'EMPRESA');
-    doc.save(`DANFE_${String(nota.numero).padStart(6, '0')}.pdf`);
+    if (modo === 'preview') {
+      const blobUrl = doc.output('bloburl');
+      window.open(blobUrl, '_blank');
+    } else {
+      doc.save(`DANFE_${String(nota.numero).padStart(6, '0')}.pdf`);
+    }
   };
 
   const visualizarDetalhes = async (nota: NotaFiscal) => {
@@ -376,6 +382,15 @@ export function Faturamento() {
                           title="Baixar DANFE"
                         >
                           <FileDown size={18} />
+                        </button>
+                      )}
+                      {nota.status === 'emitida' && (
+                        <button
+                          onClick={() => baixarDANFE(nota, 'preview')}
+                          className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-lg transition-colors"
+                          title="Visualizar DANFE"
+                        >
+                          <FileSearch size={18} />
                         </button>
                       )}
                     </div>
@@ -552,6 +567,15 @@ export function Faturamento() {
               >
                 Fechar
               </button>
+              {notaSelecionada.status === 'emitida' && (
+                <button
+                  onClick={() => baixarDANFE(notaSelecionada, 'preview')}
+                  className="flex items-center gap-2 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+                >
+                  <FileSearch size={18} />
+                  Visualizar DANFE
+                </button>
+              )}
               {notaSelecionada.status === 'emitida' && (
                 <button
                   onClick={() => {

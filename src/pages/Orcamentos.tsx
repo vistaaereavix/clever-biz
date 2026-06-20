@@ -14,6 +14,7 @@ import {
   FileDown,
   ArrowRight,
   Eye,
+  FileSearch,
   Calendar,
   User,
   DollarSign,
@@ -281,7 +282,7 @@ export function Orcamentos() {
     setErro('');
   };
 
-  const gerarPDF = async (orcamento: Orcamento) => {
+  const gerarPDF = async (orcamento: Orcamento, modo: 'download' | 'preview' = 'download') => {
     const { data: itensData } = await supabase
       .from('orcamento_itens')
       .select('*')
@@ -410,7 +411,12 @@ export function Orcamentos() {
     doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
     aplicarMarcaDagua(doc, nomeEmpresa);
-    doc.save(`orcamento_${orcamento.numero}.pdf`);
+    if (modo === 'preview') {
+      const blobUrl = doc.output('bloburl');
+      window.open(blobUrl, '_blank');
+    } else {
+      doc.save(`orcamento_${orcamento.numero}.pdf`);
+    }
   };
 
   const handleVisualizar = async (orcamento: Orcamento) => {
@@ -557,6 +563,13 @@ export function Orcamentos() {
                         title="Gerar PDF"
                       >
                         <FileDown size={18} />
+                      </button>
+                      <button
+                        onClick={() => gerarPDF(orcamento, 'preview')}
+                        className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-lg transition-colors"
+                        title="Visualizar PDF"
+                      >
+                        <FileSearch size={18} />
                       </button>
                       {orcamento.status === 'pendente' && (
                         <button
@@ -812,6 +825,12 @@ export function Orcamentos() {
                 className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
               >
                 Fechar
+              </button>
+              <button
+                onClick={() => gerarPDF(orcamentoSelecionado, 'preview')}
+                className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                <FileSearch size={18} /> Visualizar PDF
               </button>
               <button
                 onClick={() => {
