@@ -19,6 +19,7 @@ import {
 import { formatarMoeda, formatarData, formatarDocumento, formatarDataHora } from '../lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { aplicarMarcaDagua } from '@/lib/pdfWatermark';
 
 export function Faturamento() {
   const [notas, setNotas] = useState<NotaFiscal[]>([]);
@@ -257,6 +258,7 @@ export function Faturamento() {
     doc.setFontSize(7);
     doc.text('Document o auxiliar da Nota Fiscal Eletrônica. Este documento não possui validade fiscal.', 10, 285);
 
+    aplicarMarcaDagua(doc, 'EMPRESA');
     doc.save(`DANFE_${String(nota.numero).padStart(6, '0')}.pdf`);
   };
 
