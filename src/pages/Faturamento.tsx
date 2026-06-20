@@ -15,6 +15,7 @@ import {
   Clock,
   Key,
   Eye,
+  FileSearch,
 } from 'lucide-react';
 import { formatarMoeda, formatarData, formatarDocumento, formatarDataHora } from '../lib/utils';
 import jsPDF from 'jspdf';
@@ -169,7 +170,7 @@ export function Faturamento() {
     setFormData({ ...formData, processando: false });
   };
 
-  const baixarDANFE = async (nota: NotaFiscal) => {
+  const baixarDANFE = async (nota: NotaFiscal, modo: 'download' | 'preview' = 'download') => {
     const cliente = clientes.find((c) => c.id === nota.cliente_id);
     const orcamento = orcamentos.find((o) => o.id === nota.orcamento_id);
 
@@ -259,7 +260,12 @@ export function Faturamento() {
     doc.text('Document o auxiliar da Nota Fiscal Eletrônica. Este documento não possui validade fiscal.', 10, 285);
 
     aplicarMarcaDagua(doc, 'EMPRESA');
-    doc.save(`DANFE_${String(nota.numero).padStart(6, '0')}.pdf`);
+    if (modo === 'preview') {
+      const blobUrl = doc.output('bloburl');
+      window.open(blobUrl, '_blank');
+    } else {
+      doc.save(`DANFE_${String(nota.numero).padStart(6, '0')}.pdf`);
+    }
   };
 
   const visualizarDetalhes = async (nota: NotaFiscal) => {
