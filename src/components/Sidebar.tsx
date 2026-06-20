@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -13,6 +13,8 @@ import {
   LogOut,
   X,
   Menu,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -21,14 +23,29 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const menuItems = [
+type MenuItem = {
+  path: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  children?: { path: string; label: string }[];
+};
+
+const menuItems: MenuItem[] = [
   { path: '/painel', label: 'Painel', icon: LayoutDashboard },
   { path: '/clientes', label: 'Clientes', icon: Users },
   { path: '/fornecedores', label: 'Fornecedores', icon: Truck },
   { path: '/produtos', label: 'Produtos', icon: Package },
   { path: '/servicos', label: 'Serviços', icon: Wrench },
   { path: '/orcamentos', label: 'Orçamentos', icon: FileText },
-  { path: '/faturamento', label: 'Faturamento', icon: Receipt },
+  {
+    path: '/notas-fiscais',
+    label: 'Notas Fiscais',
+    icon: Receipt,
+    children: [
+      { path: '/notas-fiscais/nfe', label: 'NF-e' },
+      { path: '/notas-fiscais/nfse', label: 'NFS-e' },
+    ],
+  },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
@@ -36,6 +53,9 @@ export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
   const { logout, usuario } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => ({
+    '/notas-fiscais': location.pathname.startsWith('/notas-fiscais'),
+  }));
 
   const handleLogout = () => {
     logout();
@@ -73,23 +93,71 @@ export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {menuItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => {
-                navigate(item.path);
-                if (window.innerWidth < 1024) onToggle();
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                location.pathname === item.path
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
-                  : 'text-slate-300 hover:bg-slate-700 hover:text-white'
-              }`}
-            >
-              <item.icon size={20} />
-              <span className="font-medium">{item.label}</span>
-            </button>
-          ))}
+          {menuItems.map((item) => {
+            const isActive =
+              location.pathname === item.path ||
+              (item.children && location.pathname.startsWith(item.path));
+            const isOpen = openMenus[item.path];
+
+            if (item.children) {
+              return (
+                <div key={item.path}>
+                  <button
+                    onClick={() =>
+                      setOpenMenus((prev) => ({ ...prev, [item.path]: !prev[item.path] }))
+                    }
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                        : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`}
+                  >
+                    <item.icon size={20} />
+                    <span className="font-medium flex-1 text-left">{item.label}</span>
+                    {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                  </button>
+                  {isOpen && (
+                    <div className="ml-6 mt-1 space-y-1 border-l border-slate-700 pl-3">
+                      {item.children.map((child) => (
+                        <button
+                          key={child.path}
+                          onClick={() => {
+                            navigate(child.path);
+                            if (window.innerWidth < 1024) onToggle();
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                            location.pathname === child.path
+                              ? 'bg-blue-600/80 text-white'
+                              : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                          }`}
+                        >
+                          {child.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <button
+                key={item.path}
+                onClick={() => {
+                  navigate(item.path);
+                  if (window.innerWidth < 1024) onToggle();
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  location.pathname === item.path
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                }`}
+              >
+                <item.icon size={20} />
+                <span className="font-medium">{item.label}</span>
+              </button>
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-slate-700">
