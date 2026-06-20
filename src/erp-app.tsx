@@ -67,7 +67,10 @@ function Layout() {
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/servicos" element={<Servicos />} />
           <Route path="/orcamentos" element={<Orcamentos />} />
-          <Route path="/faturamento" element={<Faturamento />} />
+          <Route path="/notas-fiscais" element={<Navigate to="/notas-fiscais/nfe" replace />} />
+          <Route path="/notas-fiscais/nfe" element={<Faturamento tipo="NF-e" />} />
+          <Route path="/notas-fiscais/nfse" element={<Faturamento tipo="NFS-e" />} />
+          <Route path="/faturamento" element={<Navigate to="/notas-fiscais/nfe" replace />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="*" element={<Navigate to="/painel" replace />} />
         </Routes>

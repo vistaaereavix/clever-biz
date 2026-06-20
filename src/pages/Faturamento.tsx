@@ -22,7 +22,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { aplicarMarcaDagua } from '@/lib/pdfWatermark';
 
-export function Faturamento() {
+interface FaturamentoProps {
+  tipo?: 'NF-e' | 'NFS-e';
+}
+
+export function Faturamento({ tipo }: FaturamentoProps = {}) {
   const [notas, setNotas] = useState<NotaFiscal[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
@@ -289,7 +293,16 @@ export function Faturamento() {
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <Header titulo="Faturamento" subtitulo="Emita e gerencie suas notas fiscais" />
+      <Header
+        titulo={tipo ? `Notas Fiscais — ${tipo}` : 'Notas Fiscais'}
+        subtitulo={
+          tipo === 'NF-e'
+            ? 'Emita e gerencie suas Notas Fiscais Eletrônicas (produtos)'
+            : tipo === 'NFS-e'
+            ? 'Emita e gerencie suas Notas Fiscais de Serviço Eletrônicas'
+            : 'Emita e gerencie suas notas fiscais'
+        }
+      />
 
       <div className="p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
