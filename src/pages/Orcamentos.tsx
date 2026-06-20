@@ -21,6 +21,7 @@ import {
 import { formatarMoeda, formatarData, formatarDocumento } from '../lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { aplicarMarcaDagua } from '@/lib/pdfWatermark';
 
 export function Orcamentos() {
   const { usuario } = useAuth();
@@ -408,6 +409,7 @@ export function Orcamentos() {
     doc.text(`Validade: ${orcamento.validade_dias} dias a partir da emissão`, 10, 286);
     doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
+    aplicarMarcaDagua(doc, nomeEmpresa);
     doc.save(`orcamento_${orcamento.numero}.pdf`);
   };
 
