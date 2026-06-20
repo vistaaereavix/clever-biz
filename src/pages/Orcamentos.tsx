@@ -827,6 +827,12 @@ export function Orcamentos() {
                 Fechar
               </button>
               <button
+                onClick={() => gerarPDF(orcamentoSelecionado, 'preview')}
+                className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              >
+                <FileSearch size={18} /> Visualizar PDF
+              </button>
+              <button
                 onClick={() => {
                   setModalVisualizar(false);
                   gerarPDF(orcamentoSelecionado);
