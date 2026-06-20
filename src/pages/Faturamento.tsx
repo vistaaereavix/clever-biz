@@ -384,6 +384,15 @@ export function Faturamento() {
                           <FileDown size={18} />
                         </button>
                       )}
+                      {nota.status === 'emitida' && (
+                        <button
+                          onClick={() => baixarDANFE(nota, 'preview')}
+                          className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-lg transition-colors"
+                          title="Visualizar DANFE"
+                        >
+                          <FileSearch size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -558,6 +567,15 @@ export function Faturamento() {
               >
                 Fechar
               </button>
+              {notaSelecionada.status === 'emitida' && (
+                <button
+                  onClick={() => baixarDANFE(notaSelecionada, 'preview')}
+                  className="flex items-center gap-2 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
+                >
+                  <FileSearch size={18} />
+                  Visualizar DANFE
+                </button>
+              )}
               {notaSelecionada.status === 'emitida' && (
                 <button
                   onClick={() => {
