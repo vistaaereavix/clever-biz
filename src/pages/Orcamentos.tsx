@@ -14,7 +14,6 @@ import {
   FileDown,
   ArrowRight,
   Eye,
-  FileSearch,
   Calendar,
   User,
   DollarSign,
@@ -44,6 +43,10 @@ export function Orcamentos() {
     validade_dias: 30 as number,
     observacoes: '',
     status: 'pendente' as 'pendente' | 'aprovado' | 'convertido' | 'cancelado',
+    forma_pagamento: 'Pix' as 'Pix' | 'Boleto' | 'Dinheiro' | 'Débito' | 'Crédito à Vista' | 'Crédito Parcelado',
+    parcelas: 1 as number,
+    garantia: '',
+    execucao: '',
   });
 
   const [itens, setItens] = useState<OrcamentoItem[]>([]);
@@ -276,6 +279,10 @@ export function Orcamentos() {
       validade_dias: 30,
       observacoes: '',
       status: 'pendente',
+      forma_pagamento: 'Pix',
+      parcelas: 1,
+      garantia: '',
+      execucao: '',
     });
     setItens([]);
     setOrcamentoSelecionado(null);
@@ -410,7 +417,7 @@ export function Orcamentos() {
     doc.text(`Validade: ${orcamento.validade_dias} dias a partir da emissão`, 10, 286);
     doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
-    aplicarMarcaDagua(doc, nomeEmpresa);
+    aplicarMarcaDagua(doc, nomeEmpresa, logoUrl || undefined);
     if (modo === 'preview') {
       const blobUrl = doc.output('bloburl');
       window.open(blobUrl, '_blank');
