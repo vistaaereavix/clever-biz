@@ -170,6 +170,12 @@ export function Orcamentos() {
 
     const total = calcularTotal();
 
+    const extras: string[] = [];
+    extras.push(`Forma de Pagamento: ${formData.forma_pagamento}${formData.forma_pagamento === 'Crédito Parcelado' ? ` em ${formData.parcelas}x` : ''}`);
+    if (formData.garantia) extras.push(`Tempo de Garantia: ${formData.garantia}`);
+    if (formData.execucao) extras.push(`Tempo de Execução do Serviço: ${formData.execucao}`);
+    const observacoesFinal = [formData.observacoes, extras.join('\n')].filter(Boolean).join('\n\n');
+
     try {
       let orcamentoId: string;
 
@@ -179,7 +185,7 @@ export function Orcamentos() {
           .update({
             cliente_id: formData.cliente_id,
             validade_dias: parseInt(String(formData.validade_dias)) || 30,
-            observacoes: formData.observacoes,
+            observacoes: observacoesFinal,
             total,
             status: formData.status,
           })
@@ -207,7 +213,7 @@ export function Orcamentos() {
               cliente_id: formData.cliente_id,
               numero,
               validade_dias: parseInt(String(formData.validade_dias)) || 30,
-              observacoes: formData.observacoes,
+              observacoes: observacoesFinal,
               total,
               status: formData.status,
               user_id: usuario?.id,
