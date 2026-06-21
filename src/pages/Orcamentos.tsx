@@ -14,7 +14,6 @@ import {
   FileDown,
   ArrowRight,
   Eye,
-  FileSearch,
   Calendar,
   User,
   DollarSign,
@@ -44,6 +43,10 @@ export function Orcamentos() {
     validade_dias: 30 as number,
     observacoes: '',
     status: 'pendente' as 'pendente' | 'aprovado' | 'convertido' | 'cancelado',
+    forma_pagamento: 'Pix' as 'Pix' | 'Boleto' | 'Dinheiro' | 'Débito' | 'Crédito à Vista' | 'Crédito Parcelado',
+    parcelas: 1 as number,
+    garantia: '',
+    execucao: '',
   });
 
   const [itens, setItens] = useState<OrcamentoItem[]>([]);
@@ -167,6 +170,12 @@ export function Orcamentos() {
 
     const total = calcularTotal();
 
+    const extras: string[] = [];
+    extras.push(`Forma de Pagamento: ${formData.forma_pagamento}${formData.forma_pagamento === 'Crédito Parcelado' ? ` em ${formData.parcelas}x` : ''}`);
+    if (formData.garantia) extras.push(`Tempo de Garantia: ${formData.garantia}`);
+    if (formData.execucao) extras.push(`Tempo de Execução do Serviço: ${formData.execucao}`);
+    const observacoesFinal = [formData.observacoes, extras.join('\n')].filter(Boolean).join('\n\n');
+
     try {
       let orcamentoId: string;
 
@@ -176,7 +185,7 @@ export function Orcamentos() {
           .update({
             cliente_id: formData.cliente_id,
             validade_dias: parseInt(String(formData.validade_dias)) || 30,
-            observacoes: formData.observacoes,
+            observacoes: observacoesFinal,
             total,
             status: formData.status,
           })
@@ -204,7 +213,7 @@ export function Orcamentos() {
               cliente_id: formData.cliente_id,
               numero,
               validade_dias: parseInt(String(formData.validade_dias)) || 30,
-              observacoes: formData.observacoes,
+              observacoes: observacoesFinal,
               total,
               status: formData.status,
               user_id: usuario?.id,
@@ -255,6 +264,10 @@ export function Orcamentos() {
       validade_dias: orcamento.validade_dias,
       observacoes: orcamento.observacoes || '',
       status: (orcamento.status as 'pendente' | 'aprovado' | 'convertido' | 'cancelado') || 'pendente',
+      forma_pagamento: 'Pix',
+      parcelas: 1,
+      garantia: '',
+      execucao: '',
     });
 
     setItens(itensData || []);
@@ -276,6 +289,10 @@ export function Orcamentos() {
       validade_dias: 30,
       observacoes: '',
       status: 'pendente',
+      forma_pagamento: 'Pix',
+      parcelas: 1,
+      garantia: '',
+      execucao: '',
     });
     setItens([]);
     setOrcamentoSelecionado(null);
@@ -410,7 +427,7 @@ export function Orcamentos() {
     doc.text(`Validade: ${orcamento.validade_dias} dias a partir da emissão`, 10, 286);
     doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
-    aplicarMarcaDagua(doc, nomeEmpresa);
+    aplicarMarcaDagua(doc, nomeEmpresa, logoUrl || undefined);
     if (modo === 'preview') {
       const blobUrl = doc.output('bloburl');
       window.open(blobUrl, '_blank');
@@ -563,13 +580,6 @@ export function Orcamentos() {
                         title="Gerar PDF"
                       >
                         <FileDown size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleVisualizar(orcamento)}
-                        className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Visualizar Orçamento"
-                      >
-                        <FileSearch size={18} />
                       </button>
                       {orcamento.status === 'pendente' && (
                         <button
@@ -747,6 +757,61 @@ export function Orcamentos() {
             </div>
           )}
 
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Forma de Pagamento</label>
+              <select
+                value={formData.forma_pagamento}
+                onChange={(e) => setFormData({ ...formData, forma_pagamento: e.target.value as typeof formData.forma_pagamento })}
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Pix">Pix</option>
+                <option value="Boleto">Boleto</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Débito">Débito</option>
+                <option value="Crédito à Vista">Crédito à Vista</option>
+                <option value="Crédito Parcelado">Crédito Parcelado</option>
+              </select>
+            </div>
+            {formData.forma_pagamento === 'Crédito Parcelado' && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Parcelas</label>
+                <select
+                  value={formData.parcelas}
+                  onChange={(e) => setFormData({ ...formData, parcelas: Number(e.target.value) })}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{n}x</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Tempo de Garantia</label>
+              <input
+                type="text"
+                value={formData.garantia}
+                onChange={(e) => setFormData({ ...formData, garantia: e.target.value })}
+                placeholder="Ex.: 90 dias"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-200 mb-1">Tempo de Execução do Serviço</label>
+              <input
+                type="text"
+                value={formData.execucao}
+                onChange={(e) => setFormData({ ...formData, execucao: e.target.value })}
+                placeholder="Ex.: 7 dias úteis"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Observações</label>
             <textarea
@@ -830,7 +895,7 @@ export function Orcamentos() {
                 onClick={() => gerarPDF(orcamentoSelecionado, 'preview')}
                 className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
-                <FileSearch size={18} /> Visualizar PDF
+                <Eye size={18} /> Visualizar PDF
               </button>
               <button
                 onClick={() => {
