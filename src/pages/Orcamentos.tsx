@@ -757,6 +757,61 @@ export function Orcamentos() {
             </div>
           )}
 
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Forma de Pagamento</label>
+              <select
+                value={formData.forma_pagamento}
+                onChange={(e) => setFormData({ ...formData, forma_pagamento: e.target.value as typeof formData.forma_pagamento })}
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Pix">Pix</option>
+                <option value="Boleto">Boleto</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Débito">Débito</option>
+                <option value="Crédito à Vista">Crédito à Vista</option>
+                <option value="Crédito Parcelado">Crédito Parcelado</option>
+              </select>
+            </div>
+            {formData.forma_pagamento === 'Crédito Parcelado' && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Parcelas</label>
+                <select
+                  value={formData.parcelas}
+                  onChange={(e) => setFormData({ ...formData, parcelas: Number(e.target.value) })}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{n}x</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Tempo de Garantia</label>
+              <input
+                type="text"
+                value={formData.garantia}
+                onChange={(e) => setFormData({ ...formData, garantia: e.target.value })}
+                placeholder="Ex.: 90 dias"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-200 mb-1">Tempo de Execução do Serviço</label>
+              <input
+                type="text"
+                value={formData.execucao}
+                onChange={(e) => setFormData({ ...formData, execucao: e.target.value })}
+                placeholder="Ex.: 7 dias úteis"
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Observações</label>
             <textarea
