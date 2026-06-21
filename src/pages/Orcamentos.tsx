@@ -565,9 +565,9 @@ export function Orcamentos() {
                         <FileDown size={18} />
                       </button>
                       <button
-                        onClick={() => gerarPDF(orcamento, 'preview')}
+                        onClick={() => handleVisualizar(orcamento)}
                         className="p-2 text-slate-400 hover:text-cyan-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Visualizar PDF"
+                        title="Visualizar Orçamento"
                       >
                         <FileSearch size={18} />
                       </button>
