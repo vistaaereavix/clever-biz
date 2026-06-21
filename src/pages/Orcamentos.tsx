@@ -258,6 +258,10 @@ export function Orcamentos() {
       validade_dias: orcamento.validade_dias,
       observacoes: orcamento.observacoes || '',
       status: (orcamento.status as 'pendente' | 'aprovado' | 'convertido' | 'cancelado') || 'pendente',
+      forma_pagamento: 'Pix',
+      parcelas: 1,
+      garantia: '',
+      execucao: '',
     });
 
     setItens(itensData || []);
