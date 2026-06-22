@@ -553,7 +553,7 @@ export function Orcamentos() {
                             <Calendar size={14} /> {formatarData(orcamento.data_emissao)}
                           </span>
                           <span className="flex items-center gap-1">
-                            <DollarSign size={14} /> {formatarMoeda(orcamento.total)}
+                            {formatarMoeda(orcamento.total)}
                           </span>
                         </div>
                       </div>
