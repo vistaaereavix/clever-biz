@@ -16,7 +16,6 @@ import {
   Eye,
   Calendar,
   User,
-  DollarSign,
 } from 'lucide-react';
 import { formatarMoeda, formatarData, formatarDocumento } from '../lib/utils';
 import jsPDF from 'jspdf';
