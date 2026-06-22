@@ -892,10 +892,10 @@ export function Orcamentos() {
                 Fechar
               </button>
               <button
-                onClick={() => gerarPDF(orcamentoSelecionado, 'preview')}
+                onClick={() => handleVisualizar(orcamentoSelecionado)}
                 className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
-                <Eye size={18} /> Visualizar PDF
+                <Eye size={18} /> Visualizar Orçamento
               </button>
               <button
                 onClick={() => {
@@ -904,7 +904,7 @@ export function Orcamentos() {
                 }}
                 className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
-                <FileDown size={18} /> Download PDF
+                <FileDown size={18} /> Gerar PDF
               </button>
             </div>
           </div>
