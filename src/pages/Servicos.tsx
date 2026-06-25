@@ -15,6 +15,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { formatarMoeda, gerarCodigoServico } from '../lib/utils';
+import { ViewToggle, ViewMode } from '../components/ViewToggle';
 
 export function Servicos() {
   const { usuario } = useAuth();
@@ -25,6 +26,7 @@ export function Servicos() {
   const [modalExcluir, setModalExcluir] = useState(false);
   const [servicoSelecionado, setServicoSelecionado] = useState<Servico | null>(null);
   const [erro, setErro] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('large');
 
   const [formData, setFormData] = useState({
     nome: '',
@@ -142,6 +144,8 @@ export function Servicos() {
             />
           </div>
 
+          <ViewToggle value={viewMode} onChange={setViewMode} />
+
           <button
             onClick={() => {
               limparForm();
@@ -163,16 +167,63 @@ export function Servicos() {
             <Wrench className="h-16 w-16 mx-auto text-slate-600 mb-4" />
             <p className="text-slate-400">Nenhum serviço encontrado</p>
           </div>
+        ) : viewMode === 'list' ? (
+          <div className="overflow-x-auto bg-slate-800 border border-slate-700 rounded-lg">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-900/60 text-slate-400">
+                <tr>
+                  <th className="text-left px-4 py-3">Serviço</th>
+                  <th className="text-left px-4 py-3 hidden md:table-cell">Código</th>
+                  <th className="text-right px-4 py-3">Preço</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {servicosFiltrados.map((s) => (
+                  <tr key={s.id} className="border-t border-slate-700 hover:bg-slate-700/40">
+                    <td className="px-4 py-3 text-white">{s.nome}</td>
+                    <td className="px-4 py-3 text-slate-400 hidden md:table-cell">{s.codigo_municipal || '—'}</td>
+                    <td className="px-4 py-3 text-right text-green-400">{formatarMoeda(s.preco)}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <button onClick={() => handleEdit(s)} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => { setServicoSelecionado(s); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : viewMode === 'small' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {servicosFiltrados.map((servico) => (
+              <div key={servico.id} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-8 h-8 rounded-md bg-purple-600/20 flex items-center justify-center">
+                    <Wrench className="h-4 w-4 text-purple-400" />
+                  </div>
+                  <button onClick={() => handleEdit(servico)} className="p-1 text-slate-400 hover:text-blue-400 rounded">
+                    <Edit2 size={14} />
+                  </button>
+                </div>
+                <h3 className="text-sm font-medium text-white truncate" title={servico.nome}>{servico.nome}</h3>
+                <p className="text-sm font-semibold text-green-400 mt-1">{formatarMoeda(servico.preco)}</p>
+              </div>
+            ))}
+          </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {servicosFiltrados.map((servico) => (
               <div
                 key={servico.id}
-                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors"
+                className="bg-slate-800 rounded-lg p-5 border border-slate-700 hover:border-slate-600 transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-600/20 flex items-center justify-center">
-                    <Wrench className="h-5 w-5 text-purple-400" />
+                  <div className="w-16 h-16 rounded-xl bg-purple-600/20 flex items-center justify-center">
+                    <Wrench className="h-8 w-8 text-purple-400" />
                   </div>
                   <div className="flex gap-1">
                     <button

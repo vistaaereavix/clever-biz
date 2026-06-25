@@ -39,6 +39,11 @@ export interface Produto {
   preco_custo: number;
   preco_venda: number;
   estoque: number;
+  marca?: string | null;
+  modelo?: string | null;
+  condicao?: string | null;
+  tipo_item?: string | null;
+  ncm?: string | null;
   created_at?: string;
   updated_at?: string;
 }

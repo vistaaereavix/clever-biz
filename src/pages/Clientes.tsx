@@ -28,6 +28,7 @@ import {
   buscarCNPJ,
   buscarCEP,
 } from '../lib/utils';
+import { ViewToggle, ViewMode } from '../components/ViewToggle';
 
 export function Clientes() {
   const { usuario } = useAuth();
@@ -42,6 +43,7 @@ export function Clientes() {
   const [buscandoDoc, setBuscandoDoc] = useState(false);
   const [erro, setErro] = useState('');
   const [infoAutoFill, setInfoAutoFill] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('large');
 
   const [formData, setFormData] = useState({
     documento: '',
@@ -299,6 +301,8 @@ export function Clientes() {
             />
           </div>
 
+          <ViewToggle value={viewMode} onChange={setViewMode} />
+
           <button
             onClick={() => {
               limparForm();
@@ -319,6 +323,55 @@ export function Clientes() {
           <div className="text-center py-12">
             <Users className="h-16 w-16 mx-auto text-slate-600 mb-4" />
             <p className="text-slate-400">Nenhum cliente encontrado</p>
+          </div>
+        ) : viewMode === 'list' ? (
+          <div className="overflow-x-auto bg-slate-800 border border-slate-700 rounded-lg">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-900/60 text-slate-400">
+                <tr>
+                  <th className="text-left px-4 py-3">Nome</th>
+                  <th className="text-left px-4 py-3 hidden md:table-cell">Documento</th>
+                  <th className="text-left px-4 py-3 hidden lg:table-cell">Email</th>
+                  <th className="text-left px-4 py-3 hidden sm:table-cell">Telefone</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {clientesFiltrados.map((c) => (
+                  <tr key={c.id} className="border-t border-slate-700 hover:bg-slate-700/40">
+                    <td className="px-4 py-3 text-white">{c.nome_razao_social}</td>
+                    <td className="px-4 py-3 text-slate-400 hidden md:table-cell">{formatarDocumento(c.documento, c.tipo_documento as 'CPF' | 'CNPJ')}</td>
+                    <td className="px-4 py-3 text-slate-400 hidden lg:table-cell">{c.email || '—'}</td>
+                    <td className="px-4 py-3 text-slate-400 hidden sm:table-cell">{c.telefone || '—'}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <button onClick={() => handleEdit(c)} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => { setClienteSelecionado(c); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : viewMode === 'small' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {clientesFiltrados.map((cliente) => (
+              <div key={cliente.id} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center">
+                    <Building2 className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <button onClick={() => handleEdit(cliente)} className="p-1 text-slate-400 hover:text-blue-400 rounded">
+                    <Edit2 size={14} />
+                  </button>
+                </div>
+                <h3 className="text-sm font-medium text-white truncate" title={cliente.nome_razao_social}>{cliente.nome_razao_social}</h3>
+                <p className="text-xs text-slate-500 truncate">{formatarDocumento(cliente.documento, cliente.tipo_documento as 'CPF' | 'CNPJ')}</p>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="grid gap-4">
