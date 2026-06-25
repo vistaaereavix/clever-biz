@@ -28,6 +28,7 @@ import {
   buscarCNPJ,
   buscarCEP,
 } from '../lib/utils';
+import { ViewToggle, ViewMode } from '../components/ViewToggle';
 
 export function Clientes() {
   const { usuario } = useAuth();
