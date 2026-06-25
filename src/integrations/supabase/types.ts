@@ -360,34 +360,49 @@ export type Database = {
       produtos: {
         Row: {
           codigo: string
+          condicao: string | null
           created_at: string
           estoque: number
           id: string
+          marca: string | null
+          modelo: string | null
+          ncm: string | null
           nome: string
           preco_custo: number
           preco_venda: number
+          tipo_item: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           codigo: string
+          condicao?: string | null
           created_at?: string
           estoque?: number
           id?: string
+          marca?: string | null
+          modelo?: string | null
+          ncm?: string | null
           nome: string
           preco_custo?: number
           preco_venda?: number
+          tipo_item?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           codigo?: string
+          condicao?: string | null
           created_at?: string
           estoque?: number
           id?: string
+          marca?: string | null
+          modelo?: string | null
+          ncm?: string | null
           nome?: string
           preco_custo?: number
           preco_venda?: number
+          tipo_item?: string | null
           updated_at?: string
           user_id?: string
         }
