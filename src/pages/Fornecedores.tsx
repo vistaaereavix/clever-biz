@@ -26,6 +26,7 @@ import {
   buscarCNPJ,
   buscarCEP,
 } from '../lib/utils';
+import { DetailsModal } from '../components/DetailsModal';
 
 export function Fornecedores() {
   const { usuario } = useAuth();
@@ -34,6 +35,7 @@ export function Fornecedores() {
   const [loading, setLoading] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
+  const [modalDetalhes, setModalDetalhes] = useState(false);
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState<Fornecedor | null>(null);
   const [buscandoCNPJ, setBuscandoCNPJ] = useState(false);
   const [buscandoCEP, setBuscandoCEP] = useState(false);
@@ -199,6 +201,11 @@ export function Fornecedores() {
     setModalAberto(true);
   };
 
+  const handleVisualizar = (fornecedor: Fornecedor) => {
+    setFornecedorSelecionado(fornecedor);
+    setModalDetalhes(true);
+  };
+
   const handleDelete = async () => {
     if (!fornecedorSelecionado) return;
 
@@ -270,7 +277,8 @@ export function Fornecedores() {
             {fornecedoresFiltrados.map((fornecedor) => (
               <div
                 key={fornecedor.id}
-                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors"
+                onClick={() => handleVisualizar(fornecedor)}
+                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -304,13 +312,14 @@ export function Fornecedores() {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleEdit(fornecedor)}
+                      onClick={(e) => { e.stopPropagation(); handleEdit(fornecedor); }}
                       className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <Edit2 size={20} />
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setFornecedorSelecionado(fornecedor);
                         setModalExcluir(true);
                       }}
