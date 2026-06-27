@@ -572,6 +572,23 @@ export function Fornecedores() {
         confirmText="Excluir"
         type="danger"
       />
+
+      <DetailsModal
+        isOpen={modalDetalhes}
+        onClose={() => setModalDetalhes(false)}
+        title={fornecedorSelecionado?.nome_razao_social || 'Detalhes do Fornecedor'}
+        entries={fornecedorSelecionado ? [
+          { label: 'Razão Social', value: fornecedorSelecionado.nome_razao_social },
+          { label: 'CNPJ', value: formatarDocumento(fornecedorSelecionado.documento, 'CNPJ') },
+          { label: 'Inscrição Estadual', value: fornecedorSelecionado.inscricao_estadual },
+          { label: 'E-mail', value: fornecedorSelecionado.email },
+          { label: 'Telefone', value: fornecedorSelecionado.telefone },
+          { label: 'CEP', value: fornecedorSelecionado.cep },
+          { label: 'Endereço', value: [fornecedorSelecionado.logradouro, fornecedorSelecionado.numero, fornecedorSelecionado.complemento].filter(Boolean).join(', ') },
+          { label: 'Bairro', value: fornecedorSelecionado.bairro },
+          { label: 'Cidade/UF', value: fornecedorSelecionado.cidade ? `${fornecedorSelecionado.cidade}/${fornecedorSelecionado.estado}` : '' },
+        ] : []}
+      />
     </div>
   );
 }
