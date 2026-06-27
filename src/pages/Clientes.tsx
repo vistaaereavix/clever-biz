@@ -29,6 +29,7 @@ import {
   buscarCEP,
 } from '../lib/utils';
 import { ViewToggle, ViewMode } from '../components/ViewToggle';
+import { DetailsModal } from '../components/DetailsModal';
 
 export function Clientes() {
   const { usuario } = useAuth();
@@ -37,6 +38,7 @@ export function Clientes() {
   const [loading, setLoading] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
+  const [modalDetalhes, setModalDetalhes] = useState(false);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null);
   const [buscandoCNPJ, setBuscandoCNPJ] = useState(false);
   const [buscandoCEP, setBuscandoCEP] = useState(false);
@@ -256,6 +258,11 @@ export function Clientes() {
     setModalAberto(true);
   };
 
+  const handleVisualizar = (cliente: Cliente) => {
+    setClienteSelecionado(cliente);
+    setModalDetalhes(true);
+  };
+
   const handleDelete = async () => {
     if (!clienteSelecionado) return;
 
@@ -338,16 +345,16 @@ export function Clientes() {
               </thead>
               <tbody>
                 {clientesFiltrados.map((c) => (
-                  <tr key={c.id} className="border-t border-slate-700 hover:bg-slate-700/40">
+                  <tr key={c.id} onClick={() => handleVisualizar(c)} className="border-t border-slate-700 hover:bg-slate-700/40 cursor-pointer">
                     <td className="px-4 py-3 text-white">{c.nome_razao_social}</td>
                     <td className="px-4 py-3 text-slate-400 hidden md:table-cell">{formatarDocumento(c.documento, c.tipo_documento as 'CPF' | 'CNPJ')}</td>
                     <td className="px-4 py-3 text-slate-400 hidden lg:table-cell">{c.email || '—'}</td>
                     <td className="px-4 py-3 text-slate-400 hidden sm:table-cell">{c.telefone || '—'}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <button onClick={() => handleEdit(c)} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); handleEdit(c); }} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => { setClienteSelecionado(c); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); setClienteSelecionado(c); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -359,12 +366,12 @@ export function Clientes() {
         ) : viewMode === 'small' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {clientesFiltrados.map((cliente) => (
-              <div key={cliente.id} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors">
+              <div key={cliente.id} onClick={() => handleVisualizar(cliente)} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div className="w-8 h-8 rounded-full bg-blue-600/20 flex items-center justify-center">
                     <Building2 className="h-4 w-4 text-blue-400" />
                   </div>
-                  <button onClick={() => handleEdit(cliente)} className="p-1 text-slate-400 hover:text-blue-400 rounded">
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(cliente); }} className="p-1 text-slate-400 hover:text-blue-400 rounded">
                     <Edit2 size={14} />
                   </button>
                 </div>
@@ -378,7 +385,8 @@ export function Clientes() {
             {clientesFiltrados.map((cliente) => (
               <div
                 key={cliente.id}
-                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors"
+                onClick={() => handleVisualizar(cliente)}
+                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -412,13 +420,14 @@ export function Clientes() {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleEdit(cliente)}
+                      onClick={(e) => { e.stopPropagation(); handleEdit(cliente); }}
                       className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <Edit2 size={20} />
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setClienteSelecionado(cliente);
                         setModalExcluir(true);
                       }}
@@ -677,6 +686,23 @@ export function Clientes() {
         message="Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita."
         confirmText="Excluir"
         type="danger"
+      />
+
+      <DetailsModal
+        isOpen={modalDetalhes}
+        onClose={() => setModalDetalhes(false)}
+        title={clienteSelecionado?.nome_razao_social || 'Detalhes do Cliente'}
+        entries={clienteSelecionado ? [
+          { label: 'Nome / Razão Social', value: clienteSelecionado.nome_razao_social },
+          { label: clienteSelecionado.tipo_documento, value: formatarDocumento(clienteSelecionado.documento, clienteSelecionado.tipo_documento as 'CPF' | 'CNPJ') },
+          { label: 'Inscrição Estadual', value: clienteSelecionado.inscricao_estadual },
+          { label: 'E-mail', value: clienteSelecionado.email },
+          { label: 'Telefone', value: clienteSelecionado.telefone },
+          { label: 'CEP', value: clienteSelecionado.cep },
+          { label: 'Endereço', value: [clienteSelecionado.logradouro, clienteSelecionado.numero, clienteSelecionado.complemento].filter(Boolean).join(', ') },
+          { label: 'Bairro', value: clienteSelecionado.bairro },
+          { label: 'Cidade/UF', value: clienteSelecionado.cidade ? `${clienteSelecionado.cidade}/${clienteSelecionado.estado}` : '' },
+        ] : []}
       />
     </div>
   );
