@@ -542,6 +542,24 @@ export function Produtos() {
         confirmText="Excluir"
         type="danger"
       />
+
+      <DetailsModal
+        isOpen={modalDetalhes}
+        onClose={() => setModalDetalhes(false)}
+        title={produtoSelecionado?.nome || 'Detalhes do Produto'}
+        entries={[
+          { label: 'Nome', value: produtoSelecionado?.nome },
+          { label: 'Código', value: produtoSelecionado?.codigo },
+          { label: 'Marca', value: produtoSelecionado?.marca },
+          { label: 'Modelo', value: produtoSelecionado?.modelo },
+          { label: 'Condição', value: produtoSelecionado?.condicao },
+          { label: 'Tipo de Item', value: produtoSelecionado?.tipo_item },
+          { label: 'NCM', value: produtoSelecionado?.ncm },
+          { label: 'Preço de Custo', value: produtoSelecionado ? formatarMoeda(produtoSelecionado.preco_custo) : '' },
+          { label: 'Preço de Venda', value: produtoSelecionado ? formatarMoeda(produtoSelecionado.preco_venda) : '' },
+          { label: 'Estoque', value: produtoSelecionado ? `${produtoSelecionado.estoque} un.` : '' },
+        ]}
+      />
     </div>
   );
 }
