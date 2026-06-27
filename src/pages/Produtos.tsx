@@ -17,6 +17,7 @@ import {
 import { formatarMoeda, gerarCodigoProduto } from '../lib/utils';
 import { ViewToggle, ViewMode } from '../components/ViewToggle';
 import { filtrarNcm, NcmItem } from '../lib/ncm';
+import { DetailsModal } from '../components/DetailsModal';
 
 export function Produtos() {
   const { usuario } = useAuth();
@@ -25,6 +26,7 @@ export function Produtos() {
   const [loading, setLoading] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
+  const [modalDetalhes, setModalDetalhes] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
   const [erro, setErro] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('large');
@@ -144,6 +146,11 @@ export function Produtos() {
     setModalAberto(true);
   };
 
+  const handleVisualizar = (produto: Produto) => {
+    setProdutoSelecionado(produto);
+    setModalDetalhes(true);
+  };
+
   const handleDelete = async () => {
     if (!produtoSelecionado) return;
 
@@ -224,17 +231,17 @@ export function Produtos() {
               </thead>
               <tbody>
                 {produtosFiltrados.map((p) => (
-                  <tr key={p.id} className="border-t border-slate-700 hover:bg-slate-700/40">
+                  <tr key={p.id} onClick={() => handleVisualizar(p)} className="border-t border-slate-700 hover:bg-slate-700/40 cursor-pointer">
                     <td className="px-4 py-3 text-white">{p.nome}</td>
                     <td className="px-4 py-3 text-slate-400 hidden md:table-cell">{p.codigo}</td>
                     <td className="px-4 py-3 text-slate-400 hidden lg:table-cell">{p.ncm || '—'}</td>
                     <td className="px-4 py-3 text-right text-green-400">{formatarMoeda(p.preco_venda)}</td>
                     <td className="px-4 py-3 text-right text-slate-300 hidden sm:table-cell">{p.estoque}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <button onClick={() => handleEdit(p)} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); handleEdit(p); }} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => { setProdutoSelecionado(p); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); setProdutoSelecionado(p); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -246,12 +253,12 @@ export function Produtos() {
         ) : viewMode === 'small' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {produtosFiltrados.map((produto) => (
-              <div key={produto.id} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors">
+              <div key={produto.id} onClick={() => handleVisualizar(produto)} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div className="w-8 h-8 rounded-md bg-blue-600/20 flex items-center justify-center">
                     <Package className="h-4 w-4 text-blue-400" />
                   </div>
-                  <button onClick={() => handleEdit(produto)} className="p-1 text-slate-400 hover:text-blue-400 rounded">
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(produto); }} className="p-1 text-slate-400 hover:text-blue-400 rounded">
                     <Edit2 size={14} />
                   </button>
                 </div>
@@ -266,7 +273,8 @@ export function Produtos() {
             {produtosFiltrados.map((produto) => (
               <div
                 key={produto.id}
-                className="bg-slate-800 rounded-lg p-5 border border-slate-700 hover:border-slate-600 transition-colors"
+                onClick={() => handleVisualizar(produto)}
+                className="bg-slate-800 rounded-lg p-5 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-16 h-16 rounded-xl bg-blue-600/20 flex items-center justify-center">
@@ -274,13 +282,14 @@ export function Produtos() {
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => handleEdit(produto)}
+                      onClick={(e) => { e.stopPropagation(); handleEdit(produto); }}
                       className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setProdutoSelecionado(produto);
                         setModalExcluir(true);
                       }}
