@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { formatarMoeda, gerarCodigoServico } from '../lib/utils';
 import { ViewToggle, ViewMode } from '../components/ViewToggle';
+import { DetailsModal } from '../components/DetailsModal';
 
 export function Servicos() {
   const { usuario } = useAuth();
@@ -24,6 +25,7 @@ export function Servicos() {
   const [loading, setLoading] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
+  const [modalDetalhes, setModalDetalhes] = useState(false);
   const [servicoSelecionado, setServicoSelecionado] = useState<Servico | null>(null);
   const [erro, setErro] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('large');
@@ -108,6 +110,11 @@ export function Servicos() {
     setModalAberto(true);
   };
 
+  const handleVisualizar = (servico: Servico) => {
+    setServicoSelecionado(servico);
+    setModalDetalhes(true);
+  };
+
   const handleDelete = async () => {
     if (!servicoSelecionado) return;
 
@@ -180,15 +187,15 @@ export function Servicos() {
               </thead>
               <tbody>
                 {servicosFiltrados.map((s) => (
-                  <tr key={s.id} className="border-t border-slate-700 hover:bg-slate-700/40">
+                  <tr key={s.id} onClick={() => handleVisualizar(s)} className="border-t border-slate-700 hover:bg-slate-700/40 cursor-pointer">
                     <td className="px-4 py-3 text-white">{s.nome}</td>
                     <td className="px-4 py-3 text-slate-400 hidden md:table-cell">{s.codigo_municipal || '—'}</td>
                     <td className="px-4 py-3 text-right text-green-400">{formatarMoeda(s.preco)}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <button onClick={() => handleEdit(s)} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); handleEdit(s); }} className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg">
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={() => { setServicoSelecionado(s); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
+                      <button onClick={(e) => { e.stopPropagation(); setServicoSelecionado(s); setModalExcluir(true); }} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -200,12 +207,12 @@ export function Servicos() {
         ) : viewMode === 'small' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {servicosFiltrados.map((servico) => (
-              <div key={servico.id} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors">
+              <div key={servico.id} onClick={() => handleVisualizar(servico)} className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between mb-2">
                   <div className="w-8 h-8 rounded-md bg-purple-600/20 flex items-center justify-center">
                     <Wrench className="h-4 w-4 text-purple-400" />
                   </div>
-                  <button onClick={() => handleEdit(servico)} className="p-1 text-slate-400 hover:text-blue-400 rounded">
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(servico); }} className="p-1 text-slate-400 hover:text-blue-400 rounded">
                     <Edit2 size={14} />
                   </button>
                 </div>
@@ -219,7 +226,8 @@ export function Servicos() {
             {servicosFiltrados.map((servico) => (
               <div
                 key={servico.id}
-                className="bg-slate-800 rounded-lg p-5 border border-slate-700 hover:border-slate-600 transition-colors"
+                onClick={() => handleVisualizar(servico)}
+                className="bg-slate-800 rounded-lg p-5 border border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-16 h-16 rounded-xl bg-purple-600/20 flex items-center justify-center">
@@ -227,13 +235,14 @@ export function Servicos() {
                   </div>
                   <div className="flex gap-1">
                     <button
-                      onClick={() => handleEdit(servico)}
+                      onClick={(e) => { e.stopPropagation(); handleEdit(servico); }}
                       className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setServicoSelecionado(servico);
                         setModalExcluir(true);
                       }}
@@ -367,6 +376,18 @@ export function Servicos() {
         message="Tem certeza que deseja excluir este serviço? Esta ação não pode ser desfeita."
         confirmText="Excluir"
         type="danger"
+      />
+
+      <DetailsModal
+        isOpen={modalDetalhes}
+        onClose={() => setModalDetalhes(false)}
+        title={servicoSelecionado?.nome || 'Detalhes do Serviço'}
+        entries={[
+          { label: 'Nome', value: servicoSelecionado?.nome },
+          { label: 'Código Municipal', value: servicoSelecionado?.codigo_municipal },
+          { label: 'Preço', value: servicoSelecionado ? formatarMoeda(servicoSelecionado.preco) : '' },
+          { label: 'Descrição', value: servicoSelecionado?.descricao },
+        ]}
       />
     </div>
   );
