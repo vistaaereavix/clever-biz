@@ -10,6 +10,7 @@ import {
   FileText,
   Receipt,
   Settings,
+  Bot,
   LogOut,
   X,
   Menu,
@@ -37,6 +38,7 @@ const menuItems: MenuItem[] = [
   { path: '/produtos', label: 'Produtos', icon: Package },
   { path: '/servicos', label: 'Serviços', icon: Wrench },
   { path: '/orcamentos', label: 'Orçamentos', icon: FileText },
+  { path: '/assistente', label: 'Assistente IA', icon: Bot },
   {
     path: '/notas-fiscais',
     label: 'Notas Fiscais',
