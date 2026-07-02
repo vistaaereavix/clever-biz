@@ -142,3 +142,91 @@
     color: var(--color-foreground);
   }
 }
+
+/* =========================================================
+ * ERP Theme System — user-selectable color palettes.
+ * Overrides the hardcoded slate/blue utility classes used
+ * across the ERP app based on [data-erp-theme] on <html>.
+ * ========================================================= */
+
+:root {
+  --erp-bg: #0f172a;
+  --erp-surface: #1e293b;
+  --erp-surface-2: #334155;
+  --erp-border: #334155;
+  --erp-border-2: #475569;
+  --erp-accent: #3b82f6;
+  --erp-accent-hover: #2563eb;
+  --erp-text: #f8fafc;
+  --erp-text-muted: #94a3b8;
+}
+
+[data-erp-theme="midnight"] {
+  --erp-bg: #0f172a; --erp-surface: #1e293b; --erp-surface-2: #334155;
+  --erp-border: #334155; --erp-border-2: #475569;
+  --erp-accent: #3b82f6; --erp-accent-hover: #2563eb;
+  --erp-text: #f8fafc; --erp-text-muted: #94a3b8;
+}
+[data-erp-theme="ocean"] {
+  --erp-bg: #04212b; --erp-surface: #0b3a4a; --erp-surface-2: #125a6e;
+  --erp-border: #124b5c; --erp-border-2: #1a6d84;
+  --erp-accent: #2dd4bf; --erp-accent-hover: #14b8a6;
+  --erp-text: #ecfeff; --erp-text-muted: #a5d8dd;
+}
+[data-erp-theme="graphite"] {
+  --erp-bg: #101010; --erp-surface: #1c1c1c; --erp-surface-2: #2a2a2a;
+  --erp-border: #2a2a2a; --erp-border-2: #3a3a3a;
+  --erp-accent: #10b981; --erp-accent-hover: #059669;
+  --erp-text: #fafafa; --erp-text-muted: #a3a3a3;
+}
+[data-erp-theme="rose"] {
+  --erp-bg: #1a0f14; --erp-surface: #2a1720; --erp-surface-2: #3f2230;
+  --erp-border: #3f2230; --erp-border-2: #5a2f42;
+  --erp-accent: #f43f5e; --erp-accent-hover: #e11d48;
+  --erp-text: #fff1f2; --erp-text-muted: #fda4af;
+}
+[data-erp-theme="paper"] {
+  --erp-bg: #f7f7f5; --erp-surface: #ffffff; --erp-surface-2: #eef0f3;
+  --erp-border: #e5e7eb; --erp-border-2: #d4d4d8;
+  --erp-accent: #4f46e5; --erp-accent-hover: #4338ca;
+  --erp-text: #0f172a; --erp-text-muted: #52525b;
+}
+
+/* Surface overrides */
+[data-erp-theme] .bg-slate-900 { background-color: var(--erp-bg) !important; }
+[data-erp-theme] .bg-slate-800 { background-color: var(--erp-surface) !important; }
+[data-erp-theme] .bg-slate-700 { background-color: var(--erp-surface-2) !important; }
+[data-erp-theme] .bg-slate-800\/95 { background-color: color-mix(in oklab, var(--erp-surface) 95%, transparent) !important; }
+[data-erp-theme] .bg-slate-700\/40 { background-color: color-mix(in oklab, var(--erp-surface-2) 40%, transparent) !important; }
+
+/* Borders */
+[data-erp-theme] .border-slate-700 { border-color: var(--erp-border) !important; }
+[data-erp-theme] .border-slate-600 { border-color: var(--erp-border-2) !important; }
+
+/* Accent */
+[data-erp-theme] .bg-blue-600 { background-color: var(--erp-accent) !important; }
+[data-erp-theme] .hover\:bg-blue-700:hover { background-color: var(--erp-accent-hover) !important; }
+[data-erp-theme] .bg-blue-600\/80 { background-color: color-mix(in oklab, var(--erp-accent) 80%, transparent) !important; }
+[data-erp-theme] .bg-blue-600\/20 { background-color: color-mix(in oklab, var(--erp-accent) 20%, transparent) !important; }
+[data-erp-theme] .text-blue-400,
+[data-erp-theme] .text-blue-500 { color: var(--erp-accent) !important; }
+[data-erp-theme] .focus\:ring-blue-500:focus { --tw-ring-color: var(--erp-accent) !important; }
+[data-erp-theme] .shadow-blue-500\/25 { --tw-shadow-color: color-mix(in oklab, var(--erp-accent) 30%, transparent) !important; }
+
+/* Light-theme text corrections when using "paper" */
+[data-erp-theme="paper"] .text-white { color: var(--erp-text) !important; }
+[data-erp-theme="paper"] .text-slate-300,
+[data-erp-theme="paper"] .text-slate-400 { color: var(--erp-text-muted) !important; }
+[data-erp-theme="paper"] .text-slate-500,
+[data-erp-theme="paper"] .text-slate-600 { color: #71717a !important; }
+
+/* =========================================================
+ * Minimalist density — tighter padding, smaller headings,
+ * more refined buttons and cards.
+ * ========================================================= */
+[data-erp-density="compact"] header.px-6 { padding: 0.9rem 1.25rem; }
+[data-erp-density="compact"] header h1 { font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; }
+[data-erp-density="compact"] header p { font-size: 0.75rem; }
+[data-erp-density="compact"] .rounded-lg { border-radius: 0.5rem; }
+[data-erp-density="compact"] button { letter-spacing: 0.005em; }
+[data-erp-density="compact"] .shadow-lg { box-shadow: 0 4px 14px -6px rgba(0,0,0,0.35); }

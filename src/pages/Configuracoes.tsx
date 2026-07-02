@@ -160,7 +160,7 @@ export function Configuracoes() {
   return (
     <div className="min-h-screen bg-slate-900">
       <Header titulo="Configurações" subtitulo="Dados da empresa, logo e segurança" />
-      <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div className="p-6 w-full space-y-6">
 
         {/* Dados da empresa */}
         <section className="bg-slate-800 rounded-lg p-6 border border-slate-700">
