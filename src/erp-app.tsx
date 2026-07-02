@@ -13,6 +13,8 @@ import { Orcamentos } from './pages/Orcamentos';
 import { Faturamento } from './pages/Faturamento';
 import { Configuracoes } from './pages/Configuracoes';
 import { Loader2 } from 'lucide-react';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeToolbar } from './components/ThemeToolbar';
 
 const DEFAULT_LOGO = 'https://via.placeholder.com/150x50/1e3a8a/ffffff?text=ERP';
 
@@ -75,6 +77,7 @@ function Layout() {
           <Route path="*" element={<Navigate to="/painel" replace />} />
         </Routes>
       </main>
+      <ThemeToolbar />
     </div>
   );
 }
@@ -101,7 +104,9 @@ export function ErpApp() {
     <BrowserRouter>
       <ScrollTop />
       <AuthProvider>
-        <AppShell />
+        <ThemeProvider>
+          <AppShell />
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );
