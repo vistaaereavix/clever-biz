@@ -12,7 +12,6 @@ import { Servicos } from './pages/Servicos';
 import { Orcamentos } from './pages/Orcamentos';
 import { Faturamento } from './pages/Faturamento';
 import { Configuracoes } from './pages/Configuracoes';
-import { Assistente } from './pages/Assistente';
 import { Loader2 } from 'lucide-react';
 
 const DEFAULT_LOGO = 'https://via.placeholder.com/150x50/1e3a8a/ffffff?text=ERP';
@@ -73,7 +72,6 @@ function Layout() {
           <Route path="/notas-fiscais/nfse" element={<Faturamento tipo="NFS-e" />} />
           <Route path="/faturamento" element={<Navigate to="/notas-fiscais/nfe" replace />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/assistente" element={<Assistente />} />
           <Route path="*" element={<Navigate to="/painel" replace />} />
         </Routes>
       </main>
