@@ -531,6 +531,7 @@ export function Orcamentos() {
             />
           </div>
 
+          <ViewToggle value={viewMode} onChange={setViewMode} />
           <button
             onClick={() => {
               limparForm();
@@ -553,7 +554,13 @@ export function Orcamentos() {
             <p className="text-slate-400">Nenhum orçamento encontrado</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className={
+            viewMode === 'small'
+              ? 'grid gap-3 md:grid-cols-2 xl:grid-cols-3'
+              : viewMode === 'list'
+              ? 'flex flex-col divide-y divide-slate-700 border border-slate-700 rounded-lg bg-slate-800'
+              : 'grid gap-4'
+          }>
             {orcamentosFiltrados.map((orcamento) => {
               const cliente = clientes.find((c) => c.id === orcamento.cliente_id);
               return (
@@ -593,9 +600,9 @@ export function Orcamentos() {
 
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => handleVisualizar(orcamento)}
+                        onClick={() => handlePreviewPDF(orcamento)}
                         className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Visualizar"
+                        title="Visualizar (PDF)"
                       >
                         <Eye size={18} />
                       </button>
@@ -607,9 +614,9 @@ export function Orcamentos() {
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => gerarPDF(orcamento)}
+                        onClick={() => handleDownloadPDF(orcamento)}
                         className="p-2 text-slate-400 hover:text-green-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Gerar PDF"
+                        title="Baixar PDF"
                       >
                         <FileDown size={18} />
                       </button>
@@ -932,7 +939,7 @@ export function Orcamentos() {
               <button
                 onClick={() => {
                   setModalVisualizar(false);
-                  gerarPDF(orcamentoSelecionado);
+                  handleDownloadPDF(orcamentoSelecionado);
                 }}
                 className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
