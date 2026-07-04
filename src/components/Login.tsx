@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { lovable } from '@/integrations/lovable';
 import { Lock, Mail, User, AlertCircle, Loader2 } from 'lucide-react';
 
 type Modo = 'login' | 'signup' | 'recuperar';
@@ -14,6 +15,25 @@ export function Login() {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const [googleCarregando, setGoogleCarregando] = useState(false);
+
+  const entrarComGoogle = async () => {
+    setErro('');
+    setSucesso('');
+    setGoogleCarregando(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setErro(result.error.message || 'Falha ao entrar com Google');
+      }
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha ao entrar com Google');
+    } finally {
+      setGoogleCarregando(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +52,7 @@ export function Login() {
       }
       const r = await signup(email, senha, nome.trim());
       if (!r.success) setErro(r.error || 'Erro ao cadastrar');
-      else setSucesso('Cadastro criado! Verifique seu e-mail se a confirmação estiver ativa, ou faça login.');
+      else setSucesso('Cadastro criado! Enviamos um e-mail de confirmação — clique no link para ativar sua conta antes de entrar.');
     } else if (modo === 'recuperar') {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password',
