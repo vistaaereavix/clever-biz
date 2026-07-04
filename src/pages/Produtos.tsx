@@ -15,7 +15,8 @@ import {
   Archive,
 } from 'lucide-react';
 import { formatarMoeda, gerarCodigoProduto } from '../lib/utils';
-import { ViewToggle, ViewMode } from '../components/ViewToggle';
+import { ViewToggle } from '../components/ViewToggle';
+import { useViewMode } from '../hooks/useViewMode';
 import { filtrarNcm, NcmItem } from '../lib/ncm';
 import { DetailsModal } from '../components/DetailsModal';
 
@@ -29,7 +30,7 @@ export function Produtos() {
   const [modalDetalhes, setModalDetalhes] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
   const [erro, setErro] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('large');
+  const [viewMode, setViewMode] = useViewMode('produtos');
   const [ncmOpen, setNcmOpen] = useState(false);
   const ncmRef = useRef<HTMLDivElement>(null);
 

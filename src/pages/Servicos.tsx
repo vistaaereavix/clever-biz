@@ -15,7 +15,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { formatarMoeda, gerarCodigoServico } from '../lib/utils';
-import { ViewToggle, ViewMode } from '../components/ViewToggle';
+import { ViewToggle } from '../components/ViewToggle';
+import { useViewMode } from '../hooks/useViewMode';
 import { DetailsModal } from '../components/DetailsModal';
 
 export function Servicos() {
@@ -28,7 +29,7 @@ export function Servicos() {
   const [modalDetalhes, setModalDetalhes] = useState(false);
   const [servicoSelecionado, setServicoSelecionado] = useState<Servico | null>(null);
   const [erro, setErro] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('large');
+  const [viewMode, setViewMode] = useViewMode('servicos');
 
   const [formData, setFormData] = useState({
     nome: '',
