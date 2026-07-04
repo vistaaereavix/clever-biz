@@ -21,6 +21,8 @@ import { formatarMoeda, formatarData, formatarDocumento } from '../lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { aplicarMarcaDagua } from '@/lib/pdfWatermark';
+import { ViewToggle } from '../components/ViewToggle';
+import { useViewMode } from '../hooks/useViewMode';
 
 export function Orcamentos() {
   const { usuario } = useAuth();
@@ -36,6 +38,7 @@ export function Orcamentos() {
   const [orcamentoSelecionado, setOrcamentoSelecionado] = useState<Orcamento | null>(null);
   const [erro, setErro] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [viewMode, setViewMode] = useViewMode('orcamentos');
 
   const [formData, setFormData] = useState({
     cliente_id: '',
@@ -428,8 +431,20 @@ export function Orcamentos() {
 
     aplicarMarcaDagua(doc, nomeEmpresa, logoUrl || undefined);
     if (modo === 'preview') {
-      const blobUrl = doc.output('bloburl');
-      window.open(blobUrl, '_blank');
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      const w = window.open(blobUrl, '_blank');
+      if (!w) {
+        // Popup bloqueado: força download como fallback
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } else {
       doc.save(`orcamento_${orcamento.numero}.pdf`);
     }
@@ -446,6 +461,24 @@ export function Orcamentos() {
       itens: itensData || [],
     });
     setModalVisualizar(true);
+  };
+
+  const handlePreviewPDF = async (orcamento: Orcamento) => {
+    try {
+      await gerarPDF(orcamento, 'preview');
+    } catch (e) {
+      console.error('Erro ao gerar preview do PDF', e);
+      alert('Não foi possível gerar o PDF. Tente novamente.');
+    }
+  };
+
+  const handleDownloadPDF = async (orcamento: Orcamento) => {
+    try {
+      await gerarPDF(orcamento, 'download');
+    } catch (e) {
+      console.error('Erro ao baixar PDF', e);
+      alert('Não foi possível baixar o PDF. Tente novamente.');
+    }
   };
 
   const converterParaNotaFiscal = async (orcamento: Orcamento) => {
