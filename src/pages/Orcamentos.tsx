@@ -931,10 +931,13 @@ export function Orcamentos() {
                 Fechar
               </button>
               <button
-                onClick={() => handleVisualizar(orcamentoSelecionado)}
+                onClick={() => {
+                  setModalVisualizar(false);
+                  handlePreviewPDF(orcamentoSelecionado);
+                }}
                 className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
-                <Eye size={18} /> Visualizar Orçamento
+                <Eye size={18} /> Visualizar PDF
               </button>
               <button
                 onClick={() => {
