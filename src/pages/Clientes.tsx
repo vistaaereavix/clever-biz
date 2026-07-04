@@ -28,7 +28,8 @@ import {
   buscarCNPJ,
   buscarCEP,
 } from '../lib/utils';
-import { ViewToggle, ViewMode } from '../components/ViewToggle';
+import { ViewToggle } from '../components/ViewToggle';
+import { useViewMode } from '../hooks/useViewMode';
 import { DetailsModal } from '../components/DetailsModal';
 
 export function Clientes() {
@@ -45,7 +46,7 @@ export function Clientes() {
   const [buscandoDoc, setBuscandoDoc] = useState(false);
   const [erro, setErro] = useState('');
   const [infoAutoFill, setInfoAutoFill] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('large');
+  const [viewMode, setViewMode] = useViewMode('clientes');
 
   const [formData, setFormData] = useState({
     documento: '',

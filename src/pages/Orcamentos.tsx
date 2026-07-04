@@ -21,6 +21,8 @@ import { formatarMoeda, formatarData, formatarDocumento } from '../lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { aplicarMarcaDagua } from '@/lib/pdfWatermark';
+import { ViewToggle } from '../components/ViewToggle';
+import { useViewMode } from '../hooks/useViewMode';
 
 export function Orcamentos() {
   const { usuario } = useAuth();
@@ -36,6 +38,7 @@ export function Orcamentos() {
   const [orcamentoSelecionado, setOrcamentoSelecionado] = useState<Orcamento | null>(null);
   const [erro, setErro] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [viewMode, setViewMode] = useViewMode('orcamentos');
 
   const [formData, setFormData] = useState({
     cliente_id: '',
@@ -428,8 +431,20 @@ export function Orcamentos() {
 
     aplicarMarcaDagua(doc, nomeEmpresa, logoUrl || undefined);
     if (modo === 'preview') {
-      const blobUrl = doc.output('bloburl');
-      window.open(blobUrl, '_blank');
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      const w = window.open(blobUrl, '_blank');
+      if (!w) {
+        // Popup bloqueado: força download como fallback
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } else {
       doc.save(`orcamento_${orcamento.numero}.pdf`);
     }
@@ -446,6 +461,24 @@ export function Orcamentos() {
       itens: itensData || [],
     });
     setModalVisualizar(true);
+  };
+
+  const handlePreviewPDF = async (orcamento: Orcamento) => {
+    try {
+      await gerarPDF(orcamento, 'preview');
+    } catch (e) {
+      console.error('Erro ao gerar preview do PDF', e);
+      alert('Não foi possível gerar o PDF. Tente novamente.');
+    }
+  };
+
+  const handleDownloadPDF = async (orcamento: Orcamento) => {
+    try {
+      await gerarPDF(orcamento, 'download');
+    } catch (e) {
+      console.error('Erro ao baixar PDF', e);
+      alert('Não foi possível baixar o PDF. Tente novamente.');
+    }
   };
 
   const converterParaNotaFiscal = async (orcamento: Orcamento) => {
@@ -498,6 +531,7 @@ export function Orcamentos() {
             />
           </div>
 
+          <ViewToggle value={viewMode} onChange={setViewMode} />
           <button
             onClick={() => {
               limparForm();
@@ -520,7 +554,13 @@ export function Orcamentos() {
             <p className="text-slate-400">Nenhum orçamento encontrado</p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className={
+            viewMode === 'small'
+              ? 'grid gap-3 md:grid-cols-2 xl:grid-cols-3'
+              : viewMode === 'list'
+              ? 'flex flex-col divide-y divide-slate-700 border border-slate-700 rounded-lg bg-slate-800'
+              : 'grid gap-4'
+          }>
             {orcamentosFiltrados.map((orcamento) => {
               const cliente = clientes.find((c) => c.id === orcamento.cliente_id);
               return (
@@ -560,9 +600,9 @@ export function Orcamentos() {
 
                     <div className="flex flex-wrap gap-2">
                       <button
-                        onClick={() => handleVisualizar(orcamento)}
+                        onClick={() => handlePreviewPDF(orcamento)}
                         className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Visualizar"
+                        title="Visualizar (PDF)"
                       >
                         <Eye size={18} />
                       </button>
@@ -574,9 +614,9 @@ export function Orcamentos() {
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => gerarPDF(orcamento)}
+                        onClick={() => handleDownloadPDF(orcamento)}
                         className="p-2 text-slate-400 hover:text-green-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Gerar PDF"
+                        title="Baixar PDF"
                       >
                         <FileDown size={18} />
                       </button>
@@ -891,15 +931,18 @@ export function Orcamentos() {
                 Fechar
               </button>
               <button
-                onClick={() => handleVisualizar(orcamentoSelecionado)}
+                onClick={() => {
+                  setModalVisualizar(false);
+                  handlePreviewPDF(orcamentoSelecionado);
+                }}
                 className="px-6 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
-                <Eye size={18} /> Visualizar Orçamento
+                <Eye size={18} /> Visualizar PDF
               </button>
               <button
                 onClick={() => {
                   setModalVisualizar(false);
-                  gerarPDF(orcamentoSelecionado);
+                  handleDownloadPDF(orcamentoSelecionado);
                 }}
                 className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
               >
