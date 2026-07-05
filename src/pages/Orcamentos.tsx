@@ -39,6 +39,9 @@ export function Orcamentos() {
   const [erro, setErro] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [viewMode, setViewMode] = useViewMode('orcamentos');
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewFileName, setPdfPreviewFileName] = useState('orcamento.pdf');
+  const [pdfGerandoId, setPdfGerandoId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     cliente_id: '',
@@ -62,6 +65,12 @@ export function Orcamentos() {
     carregarDados();
     carregarLogo();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+    };
+  }, [pdfPreviewUrl]);
 
   const carregarLogo = async () => {
     if (!usuario) return;
@@ -301,7 +310,7 @@ export function Orcamentos() {
     setErro('');
   };
 
-  const gerarPDF = async (orcamento: Orcamento, modo: 'download' | 'preview' = 'download') => {
+  const gerarPDF = async (orcamento: Orcamento) => {
     const { data: itensData } = await supabase
       .from('orcamento_itens')
       .select('*')
@@ -430,24 +439,7 @@ export function Orcamentos() {
     doc.text(nomeEmpresa, 200, 286, { align: 'right' });
 
     aplicarMarcaDagua(doc, nomeEmpresa, logoUrl || undefined);
-    if (modo === 'preview') {
-      const blob = doc.output('blob');
-      const blobUrl = URL.createObjectURL(blob);
-      const w = window.open(blobUrl, '_blank');
-      if (!w) {
-        // Popup bloqueado: força download como fallback
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-    } else {
-      doc.save(`orcamento_${orcamento.numero}.pdf`);
-    }
+    return doc.output('blob') as Blob;
   };
 
   const handleVisualizar = async (orcamento: Orcamento) => {
@@ -464,20 +456,41 @@ export function Orcamentos() {
   };
 
   const handlePreviewPDF = async (orcamento: Orcamento) => {
+    setPdfGerandoId(orcamento.id);
     try {
-      await gerarPDF(orcamento, 'preview');
+      const blob = await gerarPDF(orcamento);
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfPreviewFileName(`orcamento_${String(orcamento.numero).padStart(4, '0')}.pdf`);
+      setPdfPreviewUrl((oldUrl) => {
+        if (oldUrl) URL.revokeObjectURL(oldUrl);
+        return blobUrl;
+      });
     } catch (e) {
       console.error('Erro ao gerar preview do PDF', e);
       alert('Não foi possível gerar o PDF. Tente novamente.');
+    } finally {
+      setPdfGerandoId(null);
     }
   };
 
   const handleDownloadPDF = async (orcamento: Orcamento) => {
+    setPdfGerandoId(orcamento.id);
     try {
-      await gerarPDF(orcamento, 'download');
+      const blob = await gerarPDF(orcamento);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `orcamento_${String(orcamento.numero).padStart(4, '0')}.pdf`;
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
     } catch (e) {
       console.error('Erro ao baixar PDF', e);
       alert('Não foi possível baixar o PDF. Tente novamente.');
+    } finally {
+      setPdfGerandoId(null);
     }
   };
 
@@ -553,91 +566,115 @@ export function Orcamentos() {
             <FileText className="h-16 w-16 mx-auto text-slate-600 mb-4" />
             <p className="text-slate-400">Nenhum orçamento encontrado</p>
           </div>
+        ) : viewMode === 'list' ? (
+          <div className="overflow-x-auto rounded-lg border border-slate-700 bg-slate-800">
+            <table className="w-full min-w-[760px]">
+              <thead className="bg-slate-700/70">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Número</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Cliente</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Data</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-400">Total</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-400">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-400">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orcamentosFiltrados.map((orcamento) => {
+                  const cliente = clientes.find((c) => c.id === orcamento.cliente_id);
+                  return (
+                    <tr key={orcamento.id} className="border-t border-slate-700 hover:bg-slate-700/30">
+                      <td className="px-4 py-3 text-sm font-medium text-white">Nº {String(orcamento.numero).padStart(4, '0')}</td>
+                      <td className="px-4 py-3 text-sm text-slate-300">{cliente?.nome_razao_social || 'Cliente não encontrado'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-400">{formatarData(orcamento.data_emissao)}</td>
+                      <td className="px-4 py-3 text-right text-sm font-semibold text-green-400">{formatarMoeda(orcamento.total)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-1 text-xs rounded border ${statusColors[orcamento.status]}`}>
+                          {orcamento.status.charAt(0).toUpperCase() + orcamento.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-1.5">
+                          <button onClick={() => handlePreviewPDF(orcamento)} disabled={pdfGerandoId === orcamento.id} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 disabled:opacity-50 rounded-lg transition-colors" title="Visualizar PDF" aria-label="Visualizar PDF">
+                            {pdfGerandoId === orcamento.id ? <Loader2 size={17} className="animate-spin" /> : <Eye size={17} />}
+                          </button>
+                          <button onClick={() => handleEdit(orcamento)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors" title="Editar" aria-label="Editar">
+                            <Edit2 size={17} />
+                          </button>
+                          <button onClick={() => handleDownloadPDF(orcamento)} disabled={pdfGerandoId === orcamento.id} className="p-2 text-slate-400 hover:text-green-400 hover:bg-slate-700 disabled:opacity-50 rounded-lg transition-colors" title="Baixar PDF" aria-label="Baixar PDF">
+                            {pdfGerandoId === orcamento.id ? <Loader2 size={17} className="animate-spin" /> : <FileDown size={17} />}
+                          </button>
+                          {orcamento.status === 'pendente' && (
+                            <button onClick={() => converterParaNotaFiscal(orcamento)} className="p-2 text-slate-400 hover:text-purple-400 hover:bg-slate-700 rounded-lg transition-colors" title="Converter em Nota Fiscal" aria-label="Converter em Nota Fiscal">
+                              <ArrowRight size={17} />
+                            </button>
+                          )}
+                          <button onClick={() => { setOrcamentoSelecionado(orcamento); setModalExcluir(true); }} className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-colors" title="Excluir" aria-label="Excluir">
+                            <Trash2 size={17} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : (
-          <div className={
-            viewMode === 'small'
-              ? 'grid gap-3 md:grid-cols-2 xl:grid-cols-3'
-              : viewMode === 'list'
-              ? 'flex flex-col divide-y divide-slate-700 border border-slate-700 rounded-lg bg-slate-800'
-              : 'grid gap-4'
-          }>
+          <div className={viewMode === 'small' ? 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'grid gap-4 xl:grid-cols-2'}>
             {orcamentosFiltrados.map((orcamento) => {
               const cliente = clientes.find((c) => c.id === orcamento.cliente_id);
+              const compact = viewMode === 'small';
               return (
                 <div
                   key={orcamento.id}
-                  className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-slate-600 transition-colors"
+                  className={`bg-slate-800 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors ${compact ? 'p-3' : 'p-4'}`}
                 >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-full bg-blue-600/20 flex items-center justify-center">
-                        <FileText className="h-6 w-6 text-blue-400" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold text-white">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex items-start gap-3">
+                      {!compact && (
+                        <div className="w-10 h-10 rounded-lg bg-blue-600/20 flex shrink-0 items-center justify-center">
+                          <FileText className="h-5 w-5 text-blue-400" />
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className={`${compact ? 'text-sm' : 'text-base'} font-semibold text-white`}>
                             Orçamento Nº {String(orcamento.numero).padStart(4, '0')}
                           </h3>
-                          <span
-                            className={`px-2 py-1 text-xs rounded border ${statusColors[orcamento.status]}`}
-                          >
+                          <span className={`px-2 py-0.5 text-[11px] rounded border ${statusColors[orcamento.status]}`}>
                             {orcamento.status.charAt(0).toUpperCase() + orcamento.status.slice(1)}
                           </span>
                         </div>
-                        <p className="text-slate-400 text-sm flex items-center gap-2 mt-1">
-                          <User size={14} /> {cliente?.nome_razao_social || 'Cliente não encontrado'}
+                        <p className={`text-slate-400 ${compact ? 'text-xs' : 'text-sm'} flex items-center gap-1.5 mt-1 truncate`}>
+                          <User size={13} /> {cliente?.nome_razao_social || 'Cliente não encontrado'}
                         </p>
-                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-400">
+                        <div className={`flex flex-wrap gap-x-3 gap-y-1 mt-2 ${compact ? 'text-xs' : 'text-sm'} text-slate-400`}>
                           <span className="flex items-center gap-1">
-                            <Calendar size={14} /> {formatarData(orcamento.data_emissao)}
+                            <Calendar size={13} /> {formatarData(orcamento.data_emissao)}
                           </span>
-                          <span className="flex items-center gap-1">
-                            {formatarMoeda(orcamento.total)}
-                          </span>
+                          <span className="font-semibold text-green-400">{formatarMoeda(orcamento.total)}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => handlePreviewPDF(orcamento)}
-                        className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Visualizar (PDF)"
-                      >
-                        <Eye size={18} />
+                    <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                      <button onClick={() => handlePreviewPDF(orcamento)} disabled={pdfGerandoId === orcamento.id} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 disabled:opacity-50 rounded-lg transition-colors" title="Visualizar PDF" aria-label="Visualizar PDF">
+                        {pdfGerandoId === orcamento.id ? <Loader2 size={17} className="animate-spin" /> : <Eye size={17} />}
                       </button>
-                      <button
-                        onClick={() => handleEdit(orcamento)}
-                        className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Editar"
-                      >
-                        <Edit2 size={18} />
+                      <button onClick={() => handleEdit(orcamento)} className="p-2 text-slate-400 hover:text-blue-400 hover:bg-slate-700 rounded-lg transition-colors" title="Editar" aria-label="Editar">
+                        <Edit2 size={17} />
                       </button>
-                      <button
-                        onClick={() => handleDownloadPDF(orcamento)}
-                        className="p-2 text-slate-400 hover:text-green-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Baixar PDF"
-                      >
-                        <FileDown size={18} />
+                      <button onClick={() => handleDownloadPDF(orcamento)} disabled={pdfGerandoId === orcamento.id} className="p-2 text-slate-400 hover:text-green-400 hover:bg-slate-700 disabled:opacity-50 rounded-lg transition-colors" title="Baixar PDF" aria-label="Baixar PDF">
+                        {pdfGerandoId === orcamento.id ? <Loader2 size={17} className="animate-spin" /> : <FileDown size={17} />}
                       </button>
                       {orcamento.status === 'pendente' && (
-                        <button
-                          onClick={() => converterParaNotaFiscal(orcamento)}
-                          className="p-2 text-slate-400 hover:text-purple-400 hover:bg-slate-700 rounded-lg transition-colors"
-                          title="Converter em Nota Fiscal"
-                        >
-                          <ArrowRight size={18} />
+                        <button onClick={() => converterParaNotaFiscal(orcamento)} className="p-2 text-slate-400 hover:text-purple-400 hover:bg-slate-700 rounded-lg transition-colors" title="Converter em Nota Fiscal" aria-label="Converter em Nota Fiscal">
+                          <ArrowRight size={17} />
                         </button>
                       )}
-                      <button
-                        onClick={() => {
-                          setOrcamentoSelecionado(orcamento);
-                          setModalExcluir(true);
-                        }}
-                        className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-colors"
-                        title="Excluir"
-                      >
-                        <Trash2 size={18} />
+                      <button onClick={() => { setOrcamentoSelecionado(orcamento); setModalExcluir(true); }} className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-colors" title="Excluir" aria-label="Excluir">
+                        <Trash2 size={17} />
                       </button>
                     </div>
                   </div>
@@ -647,6 +684,43 @@ export function Orcamentos() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={!!pdfPreviewUrl}
+        onClose={() => setPdfPreviewUrl(null)}
+        title="Prévia do Orçamento"
+        size="xl"
+      >
+        <div className="space-y-3">
+          <div className="h-[70vh] overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
+            {pdfPreviewUrl && (
+              <iframe
+                src={pdfPreviewUrl}
+                title="Prévia do orçamento em PDF"
+                className="h-full w-full bg-white"
+              />
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setPdfPreviewUrl(null)}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            >
+              Fechar
+            </button>
+            {pdfPreviewUrl && (
+              <a
+                href={pdfPreviewUrl}
+                download={pdfPreviewFileName}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                <FileDown size={17} /> Baixar PDF
+              </a>
+            )}
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={modalAberto}
