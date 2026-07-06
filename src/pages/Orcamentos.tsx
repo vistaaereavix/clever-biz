@@ -327,12 +327,14 @@ export function Orcamentos() {
 
     const doc = new jsPDF();
 
-    // Cabeçalho com altura suficiente para a logo quadrada
-    const HEADER_H = 50;
-    doc.setFillColor(30, 58, 138);
-    doc.rect(0, 0, 210, HEADER_H, 'F');
+    // Paleta — acento da marca usado com parcimônia
+    const ACCENT: [number, number, number] = [0, 172, 251]; // #00ACFB
+    const TEXT_DARK: [number, number, number] = [30, 30, 30];
+    const TEXT_MUTED: [number, number, number] = [110, 110, 110];
+    const RULE: [number, number, number] = [225, 228, 232];
 
-    // Logo quadrada 35x35mm bem distribuída à esquerda
+    // Cabeçalho: fundo branco, logo à esquerda mantendo o tamanho atual
+    const HEADER_H = 50;
     if (logoUrl) {
       try {
         doc.addImage(logoUrl, 'PNG', 10, 7.5, 35, 35);
@@ -341,57 +343,73 @@ export function Orcamentos() {
       }
     }
 
-    // Dados da empresa à direita da logo, em branco
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
+    // Dados da empresa (texto escuro sobre fundo branco)
     const nomeEmpresa = (empresa?.nome_fantasia || empresa?.razao_social || 'Sua Empresa').toString();
+    doc.setTextColor(...TEXT_DARK);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
     doc.text(nomeEmpresa, 50, 14);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    let yE = 20;
-    if (empresa?.razao_social && empresa?.nome_fantasia) { doc.text(empresa.razao_social, 50, yE); yE += 4.5; }
-    if (empresa?.cnpj) { doc.text(`CNPJ: ${empresa.cnpj}`, 50, yE); yE += 4.5; }
-    if (empresa?.inscricao_estadual) { doc.text(`IE: ${empresa.inscricao_estadual}`, 50, yE); yE += 4.5; }
+    doc.setFontSize(8.5);
+    doc.setTextColor(...TEXT_MUTED);
+    let yE = 19.5;
+    if (empresa?.razao_social && empresa?.nome_fantasia) { doc.text(empresa.razao_social, 50, yE); yE += 4; }
+    if (empresa?.cnpj) { doc.text(`CNPJ: ${empresa.cnpj}`, 50, yE); yE += 4; }
+    if (empresa?.inscricao_estadual) { doc.text(`IE: ${empresa.inscricao_estadual}`, 50, yE); yE += 4; }
     const enderecoLinha = [empresa?.logradouro, empresa?.numero].filter(Boolean).join(', ');
-    if (enderecoLinha) { doc.text(enderecoLinha + (empresa?.bairro ? ` - ${empresa.bairro}` : ''), 50, yE); yE += 4.5; }
+    if (enderecoLinha) { doc.text(enderecoLinha + (empresa?.bairro ? ` - ${empresa.bairro}` : ''), 50, yE); yE += 4; }
     const cidadeLinha = [empresa?.cidade, empresa?.estado].filter(Boolean).join(' - ');
-    if (cidadeLinha || empresa?.cep) { doc.text([cidadeLinha, empresa?.cep].filter(Boolean).join('  CEP: '), 50, yE); yE += 4.5; }
+    if (cidadeLinha || empresa?.cep) { doc.text([cidadeLinha, empresa?.cep].filter(Boolean).join('  CEP: '), 50, yE); yE += 4; }
     if (empresa?.telefone || empresa?.email) {
       doc.text([empresa?.telefone, empresa?.email].filter(Boolean).join('  •  '), 50, yE);
     }
 
-    // Bloco do número do orçamento (canto inferior direito do cabeçalho)
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(150, HEADER_H - 18, 50, 13, 2, 2, 'F');
-    doc.setTextColor(30, 58, 138);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text(`ORÇAMENTO Nº ${orcamento.numero}`, 175, HEADER_H - 11, { align: 'center' });
-    doc.setFontSize(8);
+    // Número do orçamento — bloco discreto à direita usando a cor de acento
+    doc.setTextColor(...TEXT_MUTED);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Emissão: ${formatarData(orcamento.data_emissao)}`, 175, HEADER_H - 6.5, { align: 'center' });
+    doc.setFontSize(8);
+    doc.text('ORÇAMENTO', 200, 12, { align: 'right' });
+    doc.setTextColor(...ACCENT);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text(`Nº ${String(orcamento.numero).padStart(4, '0')}`, 200, 20, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...TEXT_MUTED);
+    doc.text(`Emissão: ${formatarData(orcamento.data_emissao)}`, 200, 26, { align: 'right' });
+    doc.text(`Validade: ${orcamento.validade_dias} dias`, 200, 30.5, { align: 'right' });
+
+    // Régua fina de acento separando o cabeçalho do corpo
+    doc.setDrawColor(...ACCENT);
+    doc.setLineWidth(0.6);
+    doc.line(10, HEADER_H, 200, HEADER_H);
+    doc.setLineWidth(0.2);
 
     // Bloco CLIENTE
-    doc.setTextColor(0, 0, 0);
+    doc.setTextColor(...ACCENT);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text('CLIENTE', 10, HEADER_H + 12);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(10, HEADER_H + 14, 200, HEADER_H + 14);
+    doc.setFontSize(8.5);
+    doc.text('CLIENTE', 10, HEADER_H + 8);
+    doc.setDrawColor(...RULE);
+    doc.line(10, HEADER_H + 10, 200, HEADER_H + 10);
 
+    doc.setTextColor(...TEXT_DARK);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
+    doc.setFontSize(9.5);
     if (cliente) {
-      doc.text(cliente.nome_razao_social || '', 10, HEADER_H + 21);
-      doc.text(formatarDocumento(cliente.documento, cliente.tipo_documento as 'CPF' | 'CNPJ'), 10, HEADER_H + 27);
+      doc.setFont('helvetica', 'bold');
+      doc.text(cliente.nome_razao_social || '', 10, HEADER_H + 16);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...TEXT_MUTED);
+      doc.setFontSize(9);
+      doc.text(formatarDocumento(cliente.documento, cliente.tipo_documento as 'CPF' | 'CNPJ'), 10, HEADER_H + 21.5);
       if (cliente.logradouro) {
-        doc.text(`${cliente.logradouro}, ${cliente.numero || 's/n'}${cliente.bairro ? ' - ' + cliente.bairro : ''}`, 10, HEADER_H + 33);
-        doc.text(`${cliente.cidade || ''} - ${cliente.estado || ''}`, 10, HEADER_H + 39);
+        doc.text(`${cliente.logradouro}, ${cliente.numero || 's/n'}${cliente.bairro ? ' - ' + cliente.bairro : ''}`, 10, HEADER_H + 27);
+        doc.text(`${cliente.cidade || ''} - ${cliente.estado || ''}`, 10, HEADER_H + 32.5);
       }
       if (cliente.telefone || cliente.email) {
-        doc.text([cliente.telefone, cliente.email].filter(Boolean).join('  •  '), 110, HEADER_H + 21);
+        doc.text([cliente.telefone, cliente.email].filter(Boolean).join('  •  '), 110, HEADER_H + 16);
       }
     }
 
@@ -404,39 +422,75 @@ export function Orcamentos() {
     ]);
 
     autoTable(doc, {
-      startY: HEADER_H + 50,
+      startY: HEADER_H + 42,
       head: [['Item', 'Descrição', 'Qtd', 'Valor Unit.', 'Total']],
       body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [30, 58, 138] },
+      theme: 'plain',
+      styles: {
+        font: 'helvetica',
+        fontSize: 9,
+        cellPadding: { top: 3, right: 3, bottom: 3, left: 3 },
+        textColor: TEXT_DARK,
+        lineColor: RULE,
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: ACCENT,
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        lineColor: ACCENT,
+        lineWidth: { top: 0, right: 0, bottom: 0.4, left: 0 } as any,
+      },
+      bodyStyles: {
+        lineColor: RULE,
+        lineWidth: { top: 0, right: 0, bottom: 0.1, left: 0 } as any,
+      },
       columnStyles: {
         0: { cellWidth: 14, halign: 'center' },
         2: { cellWidth: 18, halign: 'center' },
         3: { cellWidth: 32, halign: 'right' },
         4: { cellWidth: 32, halign: 'right' },
       },
+      margin: { left: 10, right: 10 },
     });
 
     const finalY = (doc as any).lastAutoTable?.finalY || 150;
 
+    // Total — rótulo em acento, valor em preto
+    doc.setDrawColor(...ACCENT);
+    doc.setLineWidth(0.4);
+    doc.line(130, finalY + 4, 200, finalY + 4);
+    doc.setLineWidth(0.2);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...ACCENT);
+    doc.text('TOTAL', 130, finalY + 11);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(13);
-    doc.text(`TOTAL: ${formatarMoeda(orcamento.total)}`, 200, finalY + 10, { align: 'right' });
+    doc.setFontSize(14);
+    doc.setTextColor(...TEXT_DARK);
+    doc.text(formatarMoeda(orcamento.total), 200, finalY + 11, { align: 'right' });
 
     if (orcamento.observacoes) {
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.text('Observações:', 10, finalY + 22);
+      doc.setFontSize(8.5);
+      doc.setTextColor(...ACCENT);
+      doc.text('OBSERVAÇÕES', 10, finalY + 24);
+      doc.setDrawColor(...RULE);
+      doc.line(10, finalY + 26, 200, finalY + 26);
       doc.setFont('helvetica', 'normal');
-      doc.text(orcamento.observacoes, 10, finalY + 28, { maxWidth: 190 });
+      doc.setFontSize(9);
+      doc.setTextColor(...TEXT_DARK);
+      doc.text(orcamento.observacoes, 10, finalY + 31, { maxWidth: 190 });
     }
 
-    doc.setDrawColor(200, 200, 200);
-    doc.line(10, 280, 200, 280);
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Validade: ${orcamento.validade_dias} dias a partir da emissão`, 10, 286);
-    doc.text(nomeEmpresa, 200, 286, { align: 'right' });
+    // Rodapé sutil
+    doc.setDrawColor(...RULE);
+    doc.line(10, 282, 200, 282);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...TEXT_MUTED);
+    doc.text(`Validade: ${orcamento.validade_dias} dias a partir da emissão`, 10, 287);
+    doc.text(nomeEmpresa, 200, 287, { align: 'right' });
 
     aplicarMarcaDagua(doc, nomeEmpresa, logoUrl || undefined);
     return doc.output('blob') as Blob;
