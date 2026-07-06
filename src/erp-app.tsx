@@ -15,6 +15,7 @@ import { Configuracoes } from './pages/Configuracoes';
 import { Loader2 } from 'lucide-react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ThemeToolbar } from './components/ThemeToolbar';
+import { Toaster } from 'sonner';
 
 const DEFAULT_LOGO = 'https://via.placeholder.com/150x50/1e3a8a/ffffff?text=ERP';
 
@@ -106,6 +107,7 @@ export function ErpApp() {
       <AuthProvider>
         <ThemeProvider>
           <AppShell />
+          <Toaster position="top-center" richColors closeButton />
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

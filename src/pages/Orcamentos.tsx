@@ -23,6 +23,7 @@ import autoTable from 'jspdf-autotable';
 import { aplicarMarcaDagua } from '@/lib/pdfWatermark';
 import { ViewToggle } from '../components/ViewToggle';
 import { useViewMode } from '../hooks/useViewMode';
+import { toast } from 'sonner';
 
 export function Orcamentos() {
   const { usuario } = useAuth();
@@ -521,28 +522,63 @@ export function Orcamentos() {
       });
     } catch (e) {
       console.error('Erro ao gerar preview do PDF', e);
-      alert('Não foi possível gerar o PDF. Tente novamente.');
+      toast.error('Não foi possível gerar o PDF. Tente novamente.', {
+        description: e instanceof Error ? e.message : undefined,
+      });
     } finally {
       setPdfGerandoId(null);
     }
   };
 
   const handleDownloadPDF = async (orcamento: Orcamento) => {
+    // iOS Safari só aceita abrir uma nova aba/download se acontecer de forma
+    // síncrona no gesto do usuário. Abrimos a aba antes do await e preenchemos
+    // depois. Se o popup for bloqueado, caímos para <a download> e, por fim,
+    // navegamos a própria aba.
+    const popup = typeof window !== 'undefined' ? window.open('', '_blank') : null;
     setPdfGerandoId(orcamento.id);
     try {
       const blob = await gerarPDF(orcamento);
       const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `orcamento_${String(orcamento.numero).padStart(4, '0')}.pdf`;
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000);
+      const fileName = `orcamento_${String(orcamento.numero).padStart(4, '0')}.pdf`;
+
+      if (popup && !popup.closed) {
+        // Caminho iOS/desktop: mostra o PDF na aba nova; usuário pode salvar
+        // pelo menu do próprio Safari/Chrome.
+        try { popup.document.title = fileName; } catch {}
+        popup.location.href = blobUrl;
+      } else {
+        // Popup bloqueado → tenta download via <a>
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = fileName;
+        a.rel = 'noopener';
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        // iOS ignora o atributo download; se ainda estivermos aqui após um tick
+        // sem navegação, abre na própria aba como último recurso.
+        setTimeout(() => {
+          try {
+            if (document.visibilityState === 'visible') {
+              window.location.href = blobUrl;
+            }
+          } catch {}
+        }, 400);
+      }
+
+      // Revoga bem depois — Safari precisa da URL viva enquanto a aba abre.
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
     } catch (e) {
       console.error('Erro ao baixar PDF', e);
-      alert('Não foi possível baixar o PDF. Tente novamente.');
+      if (popup && !popup.closed) {
+        try { popup.close(); } catch {}
+      }
+      toast.error('Não foi possível gerar o PDF para download.', {
+        description: e instanceof Error ? e.message : 'Tente novamente em instantes.',
+      });
     } finally {
       setPdfGerandoId(null);
     }
