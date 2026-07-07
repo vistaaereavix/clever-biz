@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "ERP - Sistema de Gestão" },
+      { name: "description", content: "ERP com clientes, fornecedores, produtos, orçamentos e faturamento" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "ERP - Sistema de Gestão" },
+      { property: "og:description", content: "ERP com clientes, fornecedores, produtos, orçamentos e faturamento" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "ERP - Sistema de Gestão" },
+      { name: "twitter:description", content: "ERP com clientes, fornecedores, produtos, orçamentos e faturamento" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca86a470-1246-4db7-8a81-20680d62ec65/id-preview-cf088acd--d88bfc34-933d-4b0f-bb15-94f408bdad04.lovable.app-1783388954022.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ca86a470-1246-4db7-8a81-20680d62ec65/id-preview-cf088acd--d88bfc34-933d-4b0f-bb15-94f408bdad04.lovable.app-1783388954022.png" },
     ],
     links: [
       {
