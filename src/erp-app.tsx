@@ -12,9 +12,11 @@ import { Servicos } from './pages/Servicos';
 import { Orcamentos } from './pages/Orcamentos';
 import { Faturamento } from './pages/Faturamento';
 import { Configuracoes } from './pages/Configuracoes';
+import { GerenciamentoUsuarios } from './pages/GerenciamentoUsuarios';
 import { Loader2 } from 'lucide-react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ThemeToolbar } from './components/ThemeToolbar';
+import { PresenceMount } from './components/PresenceMount';
 import { Toaster } from 'sonner';
 
 const DEFAULT_LOGO = 'https://via.placeholder.com/150x50/1e3a8a/ffffff?text=ERP';
@@ -75,10 +77,12 @@ function Layout() {
           <Route path="/notas-fiscais/nfse" element={<Faturamento tipo="NFS-e" />} />
           <Route path="/faturamento" element={<Navigate to="/notas-fiscais/nfe" replace />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/admin/usuarios" element={<GerenciamentoUsuarios />} />
           <Route path="*" element={<Navigate to="/painel" replace />} />
         </Routes>
       </main>
       <ThemeToolbar />
+      <PresenceMount />
     </div>
   );
 }

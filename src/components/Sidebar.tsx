@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useIsAdmin } from '../hooks/useIsAdmin';
 import {
   LayoutDashboard,
   Users,
@@ -15,6 +16,7 @@ import {
   Menu,
   ChevronDown,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -51,6 +53,7 @@ const menuItems: MenuItem[] = [
 
 export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
   const { logout, usuario } = useAuth();
+  const isAdmin = useIsAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => ({
@@ -93,7 +96,12 @@ export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {menuItems.map((item) => {
+          {[
+            ...menuItems,
+            ...(isAdmin
+              ? ([{ path: '/admin/usuarios', label: 'Gerenciamento de Usuários', icon: ShieldCheck }] as MenuItem[])
+              : []),
+          ].map((item) => {
             const isActive =
               location.pathname === item.path ||
               (item.children && location.pathname.startsWith(item.path));
