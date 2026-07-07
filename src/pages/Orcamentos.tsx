@@ -334,16 +334,46 @@ export function Orcamentos() {
     const TEXT_MUTED: [number, number, number] = [110, 110, 110];
     const RULE: [number, number, number] = [225, 228, 232];
 
-    // Cabeçalho: fundo branco, logo à esquerda mantendo o tamanho atual
+   // Cabeçalho: fundo branco, logo à esquerda respeitando a proporção original
     const HEADER_H = 50;
     if (logoUrl) {
+      // Área máxima reservada para a logo (mesma área de antes: 35x35mm)
+      const LOGO_BOX_X = 10;
+      const LOGO_BOX_Y = 7.5;
+      const LOGO_BOX_W = 35;
+      const LOGO_BOX_H = 35;
+
+      let logoW = LOGO_BOX_W;
+      let logoH = LOGO_BOX_H;
+
       try {
-        doc.addImage(logoUrl, 'PNG', 10, 7.5, 35, 35);
+        const naturalSize = await new Promise<{ w: number; h: number }>((resolve, reject) => {
+          const img = new window.Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+          img.onerror = reject;
+          img.src = logoUrl;
+        });
+        if (naturalSize.w > 0 && naturalSize.h > 0) {
+          // Encaixa a logo inteira dentro do box, sem distorcer (contain)
+          const scale = Math.min(LOGO_BOX_W / naturalSize.w, LOGO_BOX_H / naturalSize.h);
+          logoW = naturalSize.w * scale;
+          logoH = naturalSize.h * scale;
+        }
       } catch {
-        try { doc.addImage(logoUrl, 'JPEG', 10, 7.5, 35, 35); } catch {}
+        // Se não conseguir medir a imagem, cai no tamanho padrão (quadrado) como antes
+      }
+
+      // Centraliza dentro do box original para manter o alinhamento do cabeçalho
+      const logoX = LOGO_BOX_X + (LOGO_BOX_W - logoW) / 2;
+      const logoY = LOGO_BOX_Y + (LOGO_BOX_H - logoH) / 2;
+
+      try {
+        doc.addImage(logoUrl, 'PNG', logoX, logoY, logoW, logoH);
+      } catch {
+        try { doc.addImage(logoUrl, 'JPEG', logoX, logoY, logoW, logoH); } catch {}
       }
     }
-
     // Dados da empresa (texto escuro sobre fundo branco)
     const nomeEmpresa = (empresa?.nome_fantasia || empresa?.razao_social || 'Sua Empresa').toString();
     doc.setTextColor(...TEXT_DARK);
