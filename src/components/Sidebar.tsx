@@ -199,3 +199,4 @@ export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
     </>
   );
 }
+
