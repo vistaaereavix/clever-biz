@@ -75,7 +75,7 @@ export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-800 border-r border-slate-700 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-slate-800 border-r border-slate-700 flex flex-col transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 lg:static lg:w-64`}
       >
@@ -95,7 +95,8 @@ export function Sidebar({ logoUrl, isOpen, onToggle }: SidebarProps) {
           </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+
           {[
             ...menuItems,
             ...(isAdmin
