@@ -12,6 +12,7 @@ import { Servicos } from './pages/Servicos';
 import { Orcamentos } from './pages/Orcamentos';
 import { Faturamento } from './pages/Faturamento';
 import { Configuracoes } from './pages/Configuracoes';
+import { GerenciamentoUsuarios } from './pages/GerenciamentoUsuarios';
 import { Loader2 } from 'lucide-react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ThemeToolbar } from './components/ThemeToolbar';
@@ -75,6 +76,7 @@ function Layout() {
           <Route path="/notas-fiscais/nfse" element={<Faturamento tipo="NFS-e" />} />
           <Route path="/faturamento" element={<Navigate to="/notas-fiscais/nfe" replace />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/admin/usuarios" element={<GerenciamentoUsuarios />} />
           <Route path="*" element={<Navigate to="/painel" replace />} />
         </Routes>
       </main>
