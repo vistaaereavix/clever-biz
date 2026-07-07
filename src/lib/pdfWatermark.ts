@@ -16,16 +16,18 @@ export function aplicarMarcaDagua(doc: jsPDF, textoOuLogo: string, logoUrl?: str
     const anyDoc = doc as any;
 
     if (anyDoc.GState && anyDoc.setGState) {
-      anyDoc.setGState(new anyDoc.GState({ opacity: 0.06 }));
+      anyDoc.setGState(new anyDoc.GState({ opacity: 0.04 }));
     }
 
     if (logoUrl) {
       try {
-        const size = 130;
-        const x = (pageWidth - size) / 2;
-        const y = (pageHeight - size) / 2;
-        try { doc.addImage(logoUrl, 'PNG', x, y, size, size); }
-        catch { doc.addImage(logoUrl, 'JPEG', x, y, size, size); }
+      const width = 130;
+      const height = 160; // ajuste conforme a proporção real da logo (mais alta que larga)
+      const x = (pageWidth - width) / 2;
+      const y = (pageHeight - height) / 2;
+      try { doc.addImage(logoUrl, 'PNG', x, y, width, height); }
+      catch { doc.addImage(logoUrl, 'JPEG', x, y, width, height); }
+      
       } catch {
         // se falhar imagem, usa texto
         doc.setFont('helvetica', 'bold');
