@@ -16,6 +16,7 @@ import { GerenciamentoUsuarios } from './pages/GerenciamentoUsuarios';
 import { Loader2 } from 'lucide-react';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ThemeToolbar } from './components/ThemeToolbar';
+import { PresenceMount } from './components/PresenceMount';
 import { Toaster } from 'sonner';
 
 const DEFAULT_LOGO = 'https://via.placeholder.com/150x50/1e3a8a/ffffff?text=ERP';
@@ -81,6 +82,7 @@ function Layout() {
         </Routes>
       </main>
       <ThemeToolbar />
+      <PresenceMount />
     </div>
   );
 }
