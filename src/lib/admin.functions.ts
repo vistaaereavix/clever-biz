@@ -70,9 +70,10 @@ export const adminDeleteUser = createServerFn({ method: 'POST' })
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
     // Best-effort cleanup of business tables scoped by user_id
-    const tables = ['orcamento_itens', 'orcamentos', 'notas_fiscais', 'produtos', 'servicos', 'clientes', 'fornecedores', 'company_settings'];
+    const tables = ['orcamento_itens', 'orcamentos', 'notas_fiscais', 'produtos', 'servicos', 'clientes', 'fornecedores', 'company_settings'] as const;
+    const admin = supabaseAdmin as any;
     await Promise.all(
-      tables.map((t) => supabaseAdmin.from(t).delete().eq('user_id', data.userId))
+      tables.map((t) => admin.from(t).delete().eq('user_id', data.userId))
     );
     return { ok: true };
   });
