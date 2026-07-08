@@ -39,7 +39,7 @@ export function Produtos() {
     codigo: gerarCodigoProduto(),
     preco_custo: 0,
     preco_venda: 0,
-    estoque: 0,
+    estoque: ''as any,
     marca: '',
     modelo: '',
     condicao: 'Novo',
@@ -445,21 +445,21 @@ export function Produtos() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Código *
-            </label>
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={18} />
-              <input
-                type="text"
-                value={formData.codigo}
-                onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-                className="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Código do produto"
-                required
-              />
-            </div>
-          </div>
+  <label className="block text-sm font-medium text-slate-300 mb-1">
+    Código *
+  </label>
+  <div className="relative">
+    <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={18} />
+    <input
+      type="text"
+      value={formData.codigo}
+      onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
+      className="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white foc...
+      placeholder="Código do produto"
+      required
+    />
+  </div>
+</div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
