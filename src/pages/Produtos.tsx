@@ -454,7 +454,7 @@ export function Produtos() {
       type="text"
       value={formData.codigo}
       onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
-      className="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white foc...
+      className="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
       placeholder="Código do produto"
       required
     />
