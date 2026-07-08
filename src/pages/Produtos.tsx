@@ -39,7 +39,7 @@ export function Produtos() {
     codigo: gerarCodigoProduto(),
     preco_custo: 0,
     preco_venda: 0,
-    estoque: ''as any,
+    estoque: '' as any,
     marca: '',
     modelo: '',
     condicao: 'Novo',
