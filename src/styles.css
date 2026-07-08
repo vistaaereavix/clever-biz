@@ -230,3 +230,6 @@
 [data-erp-density="compact"] .rounded-lg { border-radius: 0.5rem; }
 [data-erp-density="compact"] button { letter-spacing: 0.005em; }
 [data-erp-density="compact"] .shadow-lg { box-shadow: 0 4px 14px -6px rgba(0,0,0,0.35); }
+#lovable-badge {
+  display: none !important;
+}
